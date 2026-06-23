@@ -1,0 +1,20 @@
+[Unit]
+Description=HerUnity Python RenderStreaming Signalling Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=herunity
+Group=herunity
+WorkingDirectory=/opt/herunity/signalling
+EnvironmentFile=-/opt/herunity/deploy.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/herunity/.venv/bin/python -u /opt/herunity/signalling/server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/opt/herunity/logs/signalling.log
+StandardError=append:/opt/herunity/logs/signalling.log
+
+[Install]
+WantedBy=multi-user.target

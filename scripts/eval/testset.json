@@ -1,0 +1,290 @@
+[
+  {
+    "id": "tc_001",
+    "category": "self_intro",
+    "input": "你是谁？可以用一句话介绍一下自己吗？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["self_intro"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_002",
+    "category": "self_intro",
+    "input": "介绍一下你自己，以及你在 HerUnity 项目里负责什么。",
+    "expected_emotion": "confident",
+    "expected_acts": ["explain", "self_intro"],
+    "expected_gesture_types": ["gesture_emphasis"]
+  },
+  {
+    "id": "tc_003",
+    "category": "self_intro",
+    "input": "你的名字是什么？你和普通聊天机器人有什么不同？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["self_intro"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_004",
+    "category": "self_intro",
+    "input": "请以数字人的身份向观众做一个简短开场。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "self_intro", "unknown"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_005",
+    "category": "self_intro",
+    "input": "你是什么类型的虚拟角色？能怎么和我互动？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["self_intro", "explain"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_006",
+    "category": "self_intro",
+    "input": "你好，先和第一次见面的用户打个招呼吧。",
+    "expected_emotion": "happy",
+    "expected_acts": ["greet"],
+    "expected_gesture_types": ["gesture_greet"]
+  },
+  {
+    "id": "tc_007",
+    "category": "explanation",
+    "input": "请解释一下什么是 HerUnity 的数字人技术。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_008",
+    "category": "explanation",
+    "input": "什么是语义-韵律耦合行为规划？请说得具体一点。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_explain", "gesture_emphasis"]
+  },
+  {
+    "id": "tc_009",
+    "category": "explanation",
+    "input": "请解释口型同步、情绪表情和手势调度是怎么配合的。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_010",
+    "category": "explanation",
+    "input": "帮我解释一下数字人为什么需要语义手势。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_explain", "gesture_emphasis"]
+  },
+  {
+    "id": "tc_011",
+    "category": "explanation",
+    "input": "你的核心创新是什么？请用项目答辩的语气说明。",
+    "expected_emotion": "confident",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_emphasis"]
+  },
+  {
+    "id": "tc_012",
+    "category": "explanation",
+    "input": "请说明为什么实时音频、口型和动作要放在同一条时间轴上。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_013",
+    "category": "enumeration",
+    "input": "请按第一、第二、第三介绍 HerUnity 的主要能力。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_014",
+    "category": "enumeration",
+    "input": "首先说感知，其次说语音，最后说动画。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_015",
+    "category": "enumeration",
+    "input": "把你的技术路线分成三个阶段：第一是什么，第二是什么，第三是什么？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_016",
+    "category": "enumeration",
+    "input": "请用一二三的结构总结你的功能亮点。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate", "explain", "unknown"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_017",
+    "category": "enumeration",
+    "input": "请分点说明：一方面你能对话，另一方面你能做动作。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_018",
+    "category": "enumeration",
+    "input": "如果要做演示，请按首先、然后、最后安排流程。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["enumerate"],
+    "expected_gesture_types": ["gesture_enumerate"]
+  },
+  {
+    "id": "tc_019",
+    "category": "contrast",
+    "input": "但是传统数字人动作很随机，你们的方案有什么不同？",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast"],
+    "expected_gesture_types": ["gesture_contrast"]
+  },
+  {
+    "id": "tc_020",
+    "category": "contrast",
+    "input": "相比之下，SPCG 和普通关键词触发手势的区别是什么？",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast"],
+    "expected_gesture_types": ["gesture_contrast"]
+  },
+  {
+    "id": "tc_021",
+    "category": "contrast",
+    "input": "不是简单播放动画，而是根据语义和韵律规划，对吗？",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast"],
+    "expected_gesture_types": ["gesture_contrast"]
+  },
+  {
+    "id": "tc_022",
+    "category": "contrast",
+    "input": "请说明随机手势和语义对齐手势的对比。",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast", "explain"],
+    "expected_gesture_types": ["gesture_contrast"]
+  },
+  {
+    "id": "tc_023",
+    "category": "contrast",
+    "input": "然而如果语音很快，手势还能准确跟上重点吗？",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast"],
+    "expected_gesture_types": ["gesture_contrast", "gesture_emphasis"]
+  },
+  {
+    "id": "tc_024",
+    "category": "contrast",
+    "input": "传统方案只看文本，而我们的方案还看语音节奏，这个优势怎么讲？",
+    "expected_emotion": "confident",
+    "expected_acts": ["contrast"],
+    "expected_gesture_types": ["gesture_contrast"]
+  },
+  {
+    "id": "tc_025",
+    "category": "emotion",
+    "input": "我今天很开心，哈哈，演示终于跑通了！",
+    "expected_emotion": "happy",
+    "expected_acts": ["greet", "unknown"],
+    "expected_gesture_types": ["gesture_greet"]
+  },
+  {
+    "id": "tc_026",
+    "category": "emotion",
+    "input": "我有点难过，感觉答辩压力很大。",
+    "expected_emotion": "sad",
+    "expected_acts": ["greet", "unknown"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_027",
+    "category": "emotion",
+    "input": "哇，这个数字人的口型同步效果让我很惊讶！",
+    "expected_emotion": "surprised",
+    "expected_acts": ["greet", "unknown"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_028",
+    "category": "emotion",
+    "input": "我有点生气，为什么动作和语音还没有完全对齐？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["greet", "unknown"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_029",
+    "category": "emotion",
+    "input": "谢谢你帮我完成这次 HerUnity 演示。",
+    "expected_emotion": "happy",
+    "expected_acts": ["greet"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_030",
+    "category": "emotion",
+    "input": "如果观众不理解，我会有点紧张，你能安慰我吗？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["unknown", "explain"],
+    "expected_gesture_types": []
+  },
+  {
+    "id": "tc_031",
+    "category": "scene_pointing",
+    "input": "请看这里，这个方向是我们的 Unity 角色预览窗口。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_beat"]
+  },
+  {
+    "id": "tc_032",
+    "category": "scene_pointing",
+    "input": "这里显示的是实时音频波形，右边这个方向是表情曲线。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_beat"]
+  },
+  {
+    "id": "tc_033",
+    "category": "scene_pointing",
+    "input": "你能指一下这个区域，并解释它为什么重要吗？",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_explain", "gesture_emphasis"]
+  },
+  {
+    "id": "tc_034",
+    "category": "scene_pointing",
+    "input": "朝这个方向说明一下传感器事件如何影响数字人的反应。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_035",
+    "category": "scene_pointing",
+    "input": "这里是 M5 评估结果，请你用自然手势引导观众看表格。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_explain"]
+  },
+  {
+    "id": "tc_036",
+    "category": "scene_pointing",
+    "input": "请对着这个方向说：重点在语音、口型和手势的同步。",
+    "expected_emotion": "neutral",
+    "expected_acts": ["explain", "unknown"],
+    "expected_gesture_types": ["gesture_emphasis"]
+  }
+]

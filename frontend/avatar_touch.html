@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>HerUnity Avatar Touch</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      color: #eef6ff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+      touch-action: none;
+      user-select: none;
+    }
+    body { position: fixed; inset: 0; }
+    #stage {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      background: #000;
+    }
+    #unity-video {
+      width: 100vw;
+      height: 100dvh;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
+    #call-panel {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      z-index: 12;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 8px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      background: rgba(5, 8, 14, 0.72);
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    #call-status {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 8px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+    #call-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff4d4d;
+    }
+    #call-dot.active { background: #5dff9a; }
+    #call-dot.waiting { background: #ffd45d; }
+    #call-lines { min-width: 0; display: grid; gap: 2px; }
+    #call-state {
+      min-width: 0;
+      color: rgba(238, 246, 255, 0.96);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #call-caption {
+      min-width: 0;
+      min-height: 14px;
+      color: rgba(238, 246, 255, 0.66);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #call-toggle {
+      min-width: 82px;
+      height: 36px;
+      padding: 0 12px;
+      color: #041015;
+      background: #76dcff;
+    }
+    #call-toggle.active {
+      color: #fff;
+      background: #e85454;
+    }
+    #config-drawer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(calc(100% + 10px));
+      transition: transform 180ms ease, opacity 180ms ease, visibility 180ms ease;
+      background: rgba(5, 8, 14, 0.92);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(14px);
+    }
+    body.config-open #config-drawer {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    #config-form {
+      max-width: 560px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+    .sheet-title {
+      color: rgba(238, 246, 255, 0.9);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    label {
+      display: grid;
+      gap: 5px;
+      color: rgba(238, 246, 255, 0.68);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    input {
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input:focus { border-color: #76dcff; }
+    .drawer-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 10px;
+      margin-top: 2px;
+    }
+    button {
+      height: 40px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      -webkit-appearance: none;
+    }
+    #drawer-close {
+      color: #eef6ff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    #save-connect {
+      color: #041015;
+      background: #76dcff;
+    }
+    #debug-layer {
+      display: none;
+      position: fixed;
+      inset: env(safe-area-inset-top) 0 auto 0;
+      z-index: 30;
+      max-height: 48dvh;
+      padding: 10px 12px;
+      overflow: hidden;
+      pointer-events: auto;
+      background: rgba(0, 0, 0, 0.72);
+      color: #9ee7ff;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    body.debug-on #debug-layer { display: block; }
+    #debug-grid {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 3px 10px;
+      align-items: baseline;
+    }
+    .debug-label { color: rgba(238, 246, 255, 0.62); }
+    #debug-log {
+      margin-top: 8px;
+      max-height: 118px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      color: rgba(238, 246, 255, 0.82);
+    }
+    @media (max-width: 430px) {
+      #config-drawer { padding-left: 12px; padding-right: 12px; }
+      .field-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+      input { height: 37px; font-size: 14px; }
+      button { height: 39px; }
+      #call-panel { left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); }
+      #call-toggle { min-width: 74px; padding: 0 10px; }
+    }
+  </style>
+</head>
+<body>
+<main id="stage">
+  <video id="unity-video" autoplay playsinline muted></video>
+</main>
+<section id="call-panel" aria-label="Call controls">
+  <div id="call-status">
+    <span id="call-dot"></span>
+    <div id="call-lines">
+      <span id="call-state">未通话</span>
+      <span id="call-caption"></span>
+    </div>
+  </div>
+  <button id="call-toggle" type="button">开始</button>
+</section>
+<aside id="config-drawer" aria-hidden="true">
+  <form id="config-form" autocomplete="off">
+    <div class="sheet-title">Connection</div>
+    <label>
+      Host
+      <input id="host-input" name="host" type="text" inputmode="url" autocomplete="off" spellcheck="false">
+    </label>
+    <div class="field-grid">
+      <label>
+        Backend Port
+        <input id="port-input" name="port" type="number" inputmode="numeric" min="1" max="65535">
+      </label>
+      <label>
+        Signalling Port
+        <input id="signal-input" name="signal" type="number" inputmode="numeric" min="1" max="65535">
+      </label>
+    </div>
+    <label>
+      Session ID
+      <input id="session-input" name="session" type="text" autocomplete="off" spellcheck="false">
+    </label>
+    <div class="drawer-actions">
+      <button id="drawer-close" type="button">Close</button>
+      <button id="save-connect" type="submit">Save</button>
+    </div>
+  </form>
+</aside>
+<aside id="debug-layer" aria-hidden="true">
+  <div id="debug-grid">
+    <span class="debug-label">sensor</span><span id="dbg-sensor">disconnected</span>
+    <span class="debug-label">video</span><span id="dbg-video">disconnected</span>
+    <span class="debug-label">session</span><span id="dbg-session">-</span>
+    <span class="debug-label">config</span><span id="dbg-config">-</span>
+    <span class="debug-label">anchors</span><span id="dbg-anchors">fallback</span>
+    <span class="debug-label">zone</span><span id="dbg-zone">-</span>
+    <span class="debug-label">last</span><span id="dbg-last">-</span>
+  </div>
+  <div id="debug-log"></div>
+</aside>
+<script>
+"use strict";
+
+var body = document.body;
+var stage = document.getElementById("stage");
+var video = document.getElementById("unity-video");
+var callPanel = document.getElementById("call-panel");
+var callToggle = document.getElementById("call-toggle");
+var callDot = document.getElementById("call-dot");
+var callStateEl = document.getElementById("call-state");
+var callCaption = document.getElementById("call-caption");
+var configDrawer = document.getElementById("config-drawer");
+var configForm = document.getElementById("config-form");
+var hostInput = document.getElementById("host-input");
+var portInput = document.getElementById("port-input");
+var signalInput = document.getElementById("signal-input");
+var sessionInput = document.getElementById("session-input");
+var drawerClose = document.getElementById("drawer-close");
+var debugLayer = document.getElementById("debug-layer");
+var dbgSensor = document.getElementById("dbg-sensor");
+var dbgVideo = document.getElementById("dbg-video");
+var dbgSession = document.getElementById("dbg-session");
+var dbgConfig = document.getElementById("dbg-config");
+var dbgAnchors = document.getElementById("dbg-anchors");
+var dbgZone = document.getElementById("dbg-zone");
+var dbgLast = document.getElementById("dbg-last");
+var debugLog = document.getElementById("debug-log");
+
+var DEFAULT_BACKEND_PORT = "8100";
+var DEFAULT_SIGNAL_PORT = "8080";
+var SERVER_DEFAULTS = window.HERUNITY_SERVER_DEFAULTS || {};
+var DEFAULT_ICE_TRANSPORT_POLICY = String(SERVER_DEFAULTS.iceTransportPolicy || "all").trim().toLowerCase() || "all";
+var DEFAULT_ICE_SERVERS = Array.isArray(SERVER_DEFAULTS.iceServers) && SERVER_DEFAULTS.iceServers.length ? SERVER_DEFAULTS.iceServers : [{ urls: "stun:stun.l.google.com:19302" }];
+var ANCHOR_TTL_MS = 750;
+var HOLD_MS = 800;
+var TAP_MAX_MS = 520;
+var SWIPE_MIN_PX = 48;
+var HOLD_CANCEL_PX = 40;
+var HIT_RADIUS_SCALE = 1.25;
+var HIT_RADIUS_GRACE_PX = 12;
+var EDGE_OPEN_PX = 58;
+var EDGE_START_PX = 54;
+var FIRST_TOUCH_QUEUE_TIMEOUT_MS = 2500;
+var CALL_SAMPLE_RATE = 16000;
+var CALL_CHUNK_MS = 40;
+var CALL_CHUNK_SAMPLES = Math.floor(CALL_SAMPLE_RATE * CALL_CHUNK_MS / 1000);
+var CALL_SPEECH_RMS = 0.012;
+var CALL_BARGE_IN_ENABLED = false;
+
+var currentConfig = {
+  host: "",
+  port: DEFAULT_BACKEND_PORT,
+  signalPort: DEFAULT_SIGNAL_PORT,
+  session: ""
+};
+var configOpen = false;
+var debugVisible = false;
+var closeDrawerAfterConnect = false;
+var logs = [];
+var lastDebug = "-";
+var currentHitZone = "-";
+
+var sensorWs = null;
+var sensorReconnectTimer = null;
+var sensorBound = false;
+var videoReady = false;
+var pcConnected = false;
+var callWs = null;
+var callSeq = 0;
+var callActive = false;
+var callConnecting = false;
+var callReady = false;
+var callStartResolve = null;
+var callStartReject = null;
+var callState = "idle";
+var callAudioContext = null;
+var callMicStream = null;
+var callSourceNode = null;
+var callProcessorNode = null;
+var callPendingSource = new Float32Array(0);
+var callReadPos = 0;
+var callPending16k = [];
+var callBargeMs = 0;
+var callInterruptSent = false;
+var callPlaybackNextTime = 0;
+var callPlaybackNodes = [];
+var videoWs = null;
+var videoPc = null;
+var videoPeerSeq = 0;
+var videoReconnectTimer = null;
+var unityConnectionId = "";
+var sessionId = "";
+var lastMissingSessionLog = 0;
+var pendingFirstTouchEvent = null;
+var pendingFirstTouchTimer = null;
+
+var anchors = {};
+var anchorsUpdatedAt = 0;
+var activeTouch = null;
+var holdTimer = null;
+var threeFingerTimer = null;
+var activePointerId = null;
+var activePointerTouches = {};
+
+var BODY_TOUCH_ZONES = [
+  "head",
+  "face",
+  "neck",
+  "chest",
+  "waist",
+  "left_shoulder",
+  "right_shoulder",
+  "left_upper_arm",
+  "right_upper_arm",
+  "left_forearm",
+  "right_forearm",
+  "left_hand",
+  "right_hand",
+  "left_thigh",
+  "right_thigh",
+  "left_calf",
+  "right_calf",
+  "left_foot",
+  "right_foot"
+];
+
+var BODY_ZONE_META = {
+  head: { side: "center", body_group: "head" },
+  face: { side: "center", body_group: "face" },
+  neck: { side: "center", body_group: "neck" },
+  chest: { side: "center", body_group: "chest" },
+  waist: { side: "center", body_group: "waist" },
+  left_shoulder: { side: "left", body_group: "shoulder" },
+  right_shoulder: { side: "right", body_group: "shoulder" },
+  left_upper_arm: { side: "left", body_group: "upper_arm" },
+  right_upper_arm: { side: "right", body_group: "upper_arm" },
+  left_forearm: { side: "left", body_group: "forearm" },
+  right_forearm: { side: "right", body_group: "forearm" },
+  left_hand: { side: "left", body_group: "hand" },
+  right_hand: { side: "right", body_group: "hand" },
+  left_thigh: { side: "left", body_group: "thigh" },
+  right_thigh: { side: "right", body_group: "thigh" },
+  left_calf: { side: "left", body_group: "calf" },
+  right_calf: { side: "right", body_group: "calf" },
+  left_foot: { side: "left", body_group: "foot" },
+  right_foot: { side: "right", body_group: "foot" }
+};
+
+var ANCHOR_ALIASES = {
+  cheek: "face",
+  left_cheek: "face",
+  right_cheek: "face"
+};
+
+var SIDE_ANCHOR_PAIRS = [
+  ["left_shoulder", "right_shoulder"],
+  ["left_upper_arm", "right_upper_arm"],
+  ["left_forearm", "right_forearm"],
+  ["left_hand", "right_hand"],
+  ["left_thigh", "right_thigh"],
+  ["left_calf", "right_calf"],
+  ["left_foot", "right_foot"]
+];
+
+var CENTER_ANCHOR_ZONES = ["head", "face", "neck", "chest", "waist"];
+
+function storageGet(key) {
+  try {
+    return window.localStorage.getItem(key) || "";
+  } catch (err) {
+    return "";
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value == null ? "" : String(value));
+  } catch (err) {}
+}
+
+function trimText(value) {
+  return String(value == null ? "" : value).trim();
+}
+
+function normalizePort(value, fallback) {
+  var raw = trimText(value);
+  var number = Number(raw);
+  if (!raw || !Number.isFinite(number) || number < 1 || number > 65535) return fallback;
+  return String(Math.floor(number));
+}
+
+function fallbackHost() {
+  return location.hostname || "127.0.0.1";
+}
+
+function normalizeHost(value) {
+  var raw = trimText(value);
+  if (!raw) return fallbackHost();
+  try {
+    var parsed = new URL(raw.indexOf("://") >= 0 ? raw : "http://" + raw);
+    return parsed.hostname || fallbackHost();
+  } catch (err) {
+    raw = raw.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/\/.*$/, "");
+    if (raw.indexOf(":") >= 0 && raw.indexOf("[") !== 0) raw = raw.split(":")[0];
+    return raw || fallbackHost();
+  }
+}
+
+function applyUrlConfig() {
+  var params = new URLSearchParams(location.search);
+  var autostart = params.get("autostart") === "1";
+  var sessionAuto = autostart || (params.get("session") || "").toLowerCase() === "auto";
+  if (autostart) {
+    storageSet("sc_ip", fallbackHost());
+    storageSet("sc_port", DEFAULT_BACKEND_PORT);
+    storageSet("sc_signal_port", DEFAULT_SIGNAL_PORT);
+    storageSet("sc_ice_policy", DEFAULT_ICE_TRANSPORT_POLICY);
+    storageSet("sc_ice_servers", "");
+    storageSet("sc_turn_url", "");
+    storageSet("sc_turn_username", "");
+    storageSet("sc_turn_credential", "");
+    storageSet("sc_lan_host", fallbackHost());
+  }
+  if (sessionAuto) {
+    storageSet("sc_session", "");
+  }
+  var mappings = [
+    ["host", "sc_ip"],
+    ["port", "sc_port"],
+    ["backend", "sc_port"],
+    ["backend_port", "sc_port"],
+    ["signal", "sc_signal_port"],
+    ["signal_port", "sc_signal_port"],
+    ["signalling", "sc_signal_port"],
+    ["session", "sc_session"],
+    ["ice_policy", "sc_ice_policy"],
+    ["ice_servers", "sc_ice_servers"],
+    ["ice_server", "sc_ice_servers"],
+    ["turn", "sc_turn_url"],
+    ["turn_url", "sc_turn_url"],
+    ["turn_username", "sc_turn_username"],
+    ["turn_credential", "sc_turn_credential"],
+    ["lan_host", "sc_lan_host"]
+  ];
+  mappings.forEach(function(item) {
+    if (item[0] === "session" && sessionAuto) return;
+    if (params.has(item[0])) storageSet(item[1], trimText(params.get(item[0])));
+  });
+}
+
+function readConfig() {
+  return {
+    host: normalizeHost(storageGet("sc_ip")),
+    port: normalizePort(storageGet("sc_port"), DEFAULT_BACKEND_PORT),
+    signalPort: normalizePort(storageGet("sc_signal_port"), DEFAULT_SIGNAL_PORT),
+    session: trimText(storageGet("sc_session"))
+  };
+}
+
+function writeConfig(config) {
+  storageSet("sc_ip", config.host);
+  storageSet("sc_port", config.port);
+  storageSet("sc_signal_port", config.signalPort);
+  storageSet("sc_session", config.session);
+}
+
+function setConfig(config) {
+  currentConfig = {
+    host: normalizeHost(config.host),
+    port: normalizePort(config.port, DEFAULT_BACKEND_PORT),
+    signalPort: normalizePort(config.signalPort, DEFAULT_SIGNAL_PORT),
+    session: trimText(config.session)
+  };
+  sessionId = currentConfig.session;
+  hostInput.value = currentConfig.host;
+  portInput.value = currentConfig.port;
+  signalInput.value = currentConfig.signalPort;
+  sessionInput.value = currentConfig.session;
+  renderDebug();
+}
+
+function wsScheme() {
+  return location.protocol === "https:" ? "wss" : "ws";
+}
+
+function useSameOriginWs() {
+  return location.protocol === "https:";
+}
+
+function sensorUrl() {
+  if (useSameOriginWs()) return wsScheme() + "://" + location.host + "/ws/sensor";
+  return wsScheme() + "://" + currentConfig.host + ":" + currentConfig.port + "/ws/sensor";
+}
+
+function callUrl() {
+  if (useSameOriginWs()) return wsScheme() + "://" + location.host + "/ws/call";
+  return wsScheme() + "://" + currentConfig.host + ":" + currentConfig.port + "/ws/call";
+}
+
+function videoUrl() {
+  if (useSameOriginWs()) return wsScheme() + "://" + location.host + "/?role=viewer&replace=1";
+  return wsScheme() + "://" + currentConfig.host + ":" + currentConfig.signalPort + "/?role=viewer&replace=1";
+}
+
+function splitIceUrls(raw) {
+  var value = trimText(raw);
+  if (!value) return [];
+  return value.split(",").map(function(item) { return trimText(item); }).filter(Boolean);
+}
+
+function parseIceServers(raw) {
+  var value = trimText(raw);
+  if (!value) return [];
+
+  if (value.charAt(0) === "{" || value.charAt(0) === "[") {
+    try {
+      var parsed = JSON.parse(value);
+      var list = Array.isArray(parsed) ? parsed : [parsed];
+      return list.filter(function(server) {
+        return server && server.urls;
+      });
+    } catch (err) {
+      log("ice json failed " + err.message);
+    }
+  }
+
+  return splitIceUrls(value).map(function(url) {
+    return { urls: url };
+  });
+}
+
+function configuredIceServers() {
+  var servers = parseIceServers(storageGet("sc_ice_servers"));
+  var turnUrls = splitIceUrls(storageGet("sc_turn_url"));
+  if (turnUrls.length) {
+    var turnServer = { urls: turnUrls.length === 1 ? turnUrls[0] : turnUrls };
+    var username = trimText(storageGet("sc_turn_username"));
+    var credential = trimText(storageGet("sc_turn_credential"));
+    if (username || credential) {
+      turnServer.username = username;
+      turnServer.credential = credential;
+    }
+    servers.push(turnServer);
+  }
+  return servers.length ? servers : DEFAULT_ICE_SERVERS;
+}
+
+function effectiveIcePolicy() {
+  return (trimText(storageGet("sc_ice_policy")) || DEFAULT_ICE_TRANSPORT_POLICY || "all").toLowerCase();
+}
+
+function iceServerListHasTurn(servers) {
+  return servers.some(function(server) {
+    var urls = server && server.urls;
+    var list = Array.isArray(urls) ? urls : [urls];
+    return list.some(function(url) {
+      return /^turns?:/i.test(trimText(url));
+    });
+  });
+}
+
+function hasConfiguredTurnServer() {
+  if (splitIceUrls(storageGet("sc_turn_url")).length) return true;
+  return iceServerListHasTurn(parseIceServers(storageGet("sc_ice_servers"))) || iceServerListHasTurn(DEFAULT_ICE_SERVERS);
+}
+
+function setConfigOpen(value) {
+  configOpen = !!value;
+  body.classList.toggle("config-open", configOpen);
+  configDrawer.setAttribute("aria-hidden", configOpen ? "false" : "true");
+  if ("inert" in configDrawer) configDrawer.inert = !configOpen;
+}
+
+function setDebugVisible(value) {
+  debugVisible = !!value;
+  body.classList.toggle("debug-on", debugVisible);
+  debugLayer.setAttribute("aria-hidden", debugVisible ? "false" : "true");
+  renderDebug();
+}
+
+function log(message) {
+  var line = "[" + new Date().toTimeString().slice(0, 8) + "] " + message;
+  logs.unshift(line);
+  logs = logs.slice(0, 10);
+  renderDebug();
+}
+
+function setLastDebug(value) {
+  lastDebug = value || "-";
+  renderDebug();
+}
+
+function renderDebug() {
+  dbgSensor.textContent = sensorWs && sensorWs.readyState === WebSocket.OPEN ? (sensorBound ? "bound" : "connected") : "disconnected";
+  videoReady = !!video.srcObject;
+  dbgVideo.textContent = videoReady ? (pcConnected ? "playing" : "video") : (videoWs ? "connecting" : "disconnected");
+  dbgSession.textContent = sessionId || "(missing)";
+  dbgConfig.textContent = (useSameOriginWs() ? location.host + " gateway" : currentConfig.host + ":" + currentConfig.port + " / " + currentConfig.signalPort);
+  dbgAnchors.textContent = anchorsAreFresh() ? "live " + liveAnchorCount() : "fallback";
+  dbgZone.textContent = currentHitZone;
+  dbgLast.textContent = lastDebug;
+  debugLog.textContent = logs.join("\n");
+}
+
+function setCallUi(state, caption) {
+  callState = state || callState || "idle";
+  var labels = {
+    idle: "未通话",
+    connecting: "连接中",
+    listening: "聆听中",
+    user_speaking: "你在说话",
+    asr: "识别中",
+    thinking: "思考中",
+    speaking: "数字人回应",
+    error: "通话错误"
+  };
+  callStateEl.textContent = labels[callState] || callState;
+  callCaption.textContent = caption || "";
+  callDot.classList.toggle("active", callActive && callState !== "error");
+  callDot.classList.toggle("waiting", callConnecting || callState === "asr" || callState === "thinking");
+  callToggle.classList.toggle("active", callActive || callConnecting);
+  callToggle.textContent = (callActive || callConnecting) ? "结束" : "开始";
+}
+
+function maybeAutoCloseDrawer() {
+  if (!closeDrawerAfterConnect || !configOpen) return;
+  var sensorReady = !!sessionId && sensorWs && sensorWs.readyState === WebSocket.OPEN && sensorBound;
+  if (videoReady || sensorReady) {
+    closeDrawerAfterConnect = false;
+    setConfigOpen(false);
+  }
+}
+
+function interactionReady() {
+  videoReady = !!video.srcObject;
+  return !!sessionId && sensorWs && sensorWs.readyState === WebSocket.OPEN && sensorBound && (videoReady || pcConnected);
+}
+
+function flushPendingFirstTouch() {
+  if (!pendingFirstTouchEvent || !interactionReady()) return;
+  var pending = pendingFirstTouchEvent;
+  pendingFirstTouchEvent = null;
+  clearTimeout(pendingFirstTouchTimer);
+  pendingFirstTouchTimer = null;
+  sendEventNow(pending.event, pending.zone, pending.value);
+}
+
+function queueFirstTouchEvent(event, zone, value) {
+  if (pendingFirstTouchEvent) {
+    setLastDebug("touch queued");
+    return;
+  }
+
+  pendingFirstTouchEvent = { event: event, zone: zone, value: value };
+  setLastDebug("touch queued");
+  log("queued " + event);
+  pendingFirstTouchTimer = setTimeout(function() {
+    if (!pendingFirstTouchEvent) return;
+    pendingFirstTouchEvent = null;
+    pendingFirstTouchTimer = null;
+    setLastDebug("touch dropped");
+    log("dropped first touch");
+  }, FIRST_TOUCH_QUEUE_TIMEOUT_MS);
+}
+
+function connectAll() {
+  connectVideo();
+  connectSensor();
+}
+
+function startCall() {
+  if (callActive || callConnecting) {
+    stopCall();
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setCallUi("error", "麦克风不可用");
+    log("microphone unsupported");
+    return;
+  }
+
+  callConnecting = true;
+  callSeq = 0;
+  callBargeMs = 0;
+  callInterruptSent = false;
+  callPendingSource = new Float32Array(0);
+  callReadPos = 0;
+  callPending16k = [];
+  setCallUi("connecting", "麦克风授权");
+
+  Promise.all([
+    openCallSocket(),
+    navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      },
+      video: false
+    })
+  ]).then(function(results) {
+    callMicStream = results[1];
+    startCallAudioGraph(callMicStream);
+    callActive = true;
+    callConnecting = false;
+  }).catch(function(err) {
+    log("call start failed " + (err && err.message ? err.message : err));
+    stopCall();
+    setCallUi("error", "无法开始通话");
+  });
+}
+
+function openCallSocket() {
+  return new Promise(function(resolve, reject) {
+    try {
+      callWs = new WebSocket(callUrl());
+    } catch (err) {
+      reject(err);
+      return;
+    }
+    callWs.onopen = function() {
+      var payload = {
+        type: "call.start",
+        avatar_id: "vrm_female_001",
+        language: "zh",
+        sample_rate: CALL_SAMPLE_RATE
+      };
+      var sid = currentConfig.session || trimText(storageGet("sc_session"));
+      if (sid) payload.session_id = sid;
+      callWs.send(JSON.stringify(payload));
+      callStartResolve = resolve;
+      callStartReject = reject;
+    };
+    callWs.onmessage = onCallMessage;
+    callWs.onerror = function() {
+      callReady = false;
+      if (callStartReject) {
+        callStartReject(new Error("call websocket error"));
+        callStartReject = null;
+        callStartResolve = null;
+      }
+      reject(new Error("call websocket error"));
+    };
+    callWs.onclose = function() {
+      callReady = false;
+      if (callStartReject) {
+        callStartReject(new Error("call websocket closed before start"));
+        callStartReject = null;
+        callStartResolve = null;
+      }
+      if (callActive || callConnecting) {
+        stopCallAudio();
+        callActive = false;
+        callConnecting = false;
+        setCallUi("idle", "");
+      }
+    };
+  });
+}
+
+function onCallMessage(ev) {
+  var msg;
+  try {
+    msg = JSON.parse(ev.data);
+  } catch (err) {
+    return;
+  }
+  if (msg.type === "call.started") {
+    sessionId = msg.session_id || sessionId;
+    if (sessionId) {
+      currentConfig.session = sessionId;
+      sessionInput.value = sessionId;
+      storageSet("sc_session", sessionId);
+      if (sensorWs && sensorWs.readyState === WebSocket.OPEN && !sensorBound) bindSession();
+    }
+    callReady = true;
+    if (callStartResolve) {
+      callStartResolve();
+      callStartResolve = null;
+      callStartReject = null;
+    }
+    if (callConnecting || callActive) setCallUi("listening", "");
+    log("call " + sessionId);
+  } else if (msg.type === "call.state") {
+    setCallUi(msg.state || "idle", msg.detail || "");
+    if (msg.state !== "speaking") {
+      callBargeMs = 0;
+      callInterruptSent = false;
+    }
+  } else if (msg.type === "asr.final") {
+    setCallUi("thinking", msg.text || "");
+    setLastDebug("asr " + (msg.text || ""));
+  } else if (msg.type === "llm.final") {
+    setCallUi("speaking", msg.text || "");
+  } else if (msg.type === "call.audio.start") {
+    resetCallPlayback();
+    setLastDebug("audio start");
+  } else if (msg.type === "call.audio.chunk") {
+    playCallAudioChunk(msg);
+  } else if (msg.type === "call.audio.end") {
+    setLastDebug("audio end");
+  } else if (msg.type === "call.audio.cancel") {
+    resetCallPlayback();
+  } else if (msg.type === "call.error") {
+    if (!callReady && callStartReject) {
+      callStartReject(new Error(msg.message || "call start failed"));
+      callStartResolve = null;
+      callStartReject = null;
+    }
+    setCallUi("error", msg.message || "error");
+    log("call error " + (msg.message || ""));
+  }
+  renderDebug();
+}
+
+function stopCall() {
+  if (callWs && callWs.readyState === WebSocket.OPEN) {
+    try { callWs.send(JSON.stringify({ type: "call.stop" })); } catch (err) {}
+  }
+  if (callWs) {
+    try {
+      callWs.onopen = null;
+      callWs.onmessage = null;
+      callWs.onerror = null;
+      callWs.onclose = null;
+      callWs.close();
+    } catch (err2) {}
+  }
+  callWs = null;
+  callReady = false;
+  callStartResolve = null;
+  callStartReject = null;
+  stopCallAudio();
+  callActive = false;
+  callConnecting = false;
+  setCallUi("idle", "");
+}
+
+function startCallAudioGraph(stream) {
+  var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) throw new Error("AudioContext unsupported");
+  callAudioContext = new AudioContextCtor();
+  if (callAudioContext.state === "suspended" && callAudioContext.resume) {
+    callAudioContext.resume().catch(function() {});
+  }
+  callSourceNode = callAudioContext.createMediaStreamSource(stream);
+  callProcessorNode = callAudioContext.createScriptProcessor(4096, 1, 1);
+  callProcessorNode.onaudioprocess = function(ev) {
+    if (!callActive || !callWs || callWs.readyState !== WebSocket.OPEN) return;
+    var input = ev.inputBuffer.getChannelData(0);
+    var resampled = resampleTo16k(input, callAudioContext.sampleRate);
+    maybeSendBargeInterrupt(resampled);
+    queueCallAudio(resampled);
+  };
+  callSourceNode.connect(callProcessorNode);
+  var silentOutput = callAudioContext.createGain();
+  silentOutput.gain.value = 0;
+  callProcessorNode.connect(silentOutput);
+  silentOutput.connect(callAudioContext.destination);
+}
+
+function resetCallPlayback() {
+  callPlaybackNextTime = 0;
+  if (callPlaybackNodes.length) {
+    callPlaybackNodes.forEach(function(node) {
+      try { node.onended = null; node.stop(); } catch (err) {}
+    });
+  }
+  callPlaybackNodes = [];
+}
+
+function playCallAudioChunk(msg) {
+  if (!callAudioContext || !msg || !msg.base64) return;
+  if (callAudioContext.state === "suspended" && callAudioContext.resume) {
+    callAudioContext.resume().catch(function() {});
+  }
+
+  var sampleRate = Number(msg.sample_rate || CALL_SAMPLE_RATE);
+  var samples = pcmBase64ToFloat32(msg.base64);
+  if (!samples.length || !Number.isFinite(sampleRate) || sampleRate <= 0) return;
+
+  var buffer = callAudioContext.createBuffer(1, samples.length, sampleRate);
+  buffer.copyToChannel(samples, 0);
+  var source = callAudioContext.createBufferSource();
+  source.buffer = buffer;
+  source.connect(callAudioContext.destination);
+  source.onended = function() {
+    var index = callPlaybackNodes.indexOf(source);
+    if (index >= 0) callPlaybackNodes.splice(index, 1);
+  };
+
+  var now = callAudioContext.currentTime;
+  if (!callPlaybackNextTime || callPlaybackNextTime < now + 0.08) {
+    callPlaybackNextTime = now + 0.08;
+  }
+
+  try {
+    source.start(callPlaybackNextTime);
+    callPlaybackNextTime += buffer.duration;
+    callPlaybackNodes.push(source);
+  } catch (err) {
+    log("audio play failed " + err.message);
+  }
+}
+
+function stopCallAudio() {
+  resetCallPlayback();
+  if (callProcessorNode) {
+    try { callProcessorNode.disconnect(); } catch (err) {}
+    callProcessorNode.onaudioprocess = null;
+  }
+  if (callSourceNode) {
+    try { callSourceNode.disconnect(); } catch (err2) {}
+  }
+  if (callAudioContext) {
+    try { callAudioContext.close(); } catch (err3) {}
+  }
+  if (callMicStream) {
+    try { callMicStream.getTracks().forEach(function(track) { track.stop(); }); } catch (err4) {}
+  }
+  callProcessorNode = null;
+  callSourceNode = null;
+  callAudioContext = null;
+  callMicStream = null;
+  callPendingSource = new Float32Array(0);
+  callReadPos = 0;
+  callPending16k = [];
+}
+
+function resampleTo16k(input, sourceRate) {
+  if (!input || input.length === 0) return new Float32Array(0);
+  if (Math.round(sourceRate) === CALL_SAMPLE_RATE) return new Float32Array(input);
+
+  var merged = new Float32Array(callPendingSource.length + input.length);
+  merged.set(callPendingSource, 0);
+  merged.set(input, callPendingSource.length);
+
+  var ratio = sourceRate / CALL_SAMPLE_RATE;
+  var output = [];
+  while (callReadPos + 1 < merged.length) {
+    var idx = Math.floor(callReadPos);
+    var frac = callReadPos - idx;
+    output.push(merged[idx] * (1 - frac) + merged[idx + 1] * frac);
+    callReadPos += ratio;
+  }
+
+  var consume = Math.floor(callReadPos);
+  if (consume > 0) {
+    callPendingSource = merged.slice(consume);
+    callReadPos -= consume;
+  } else {
+    callPendingSource = merged;
+  }
+  return new Float32Array(output);
+}
+
+function queueCallAudio(samples) {
+  for (var i = 0; i < samples.length; i++) callPending16k.push(samples[i]);
+  while (callPending16k.length >= CALL_CHUNK_SAMPLES) {
+    var chunk = callPending16k.slice(0, CALL_CHUNK_SAMPLES);
+    callPending16k = callPending16k.slice(CALL_CHUNK_SAMPLES);
+    sendCallPcmChunk(chunk);
+  }
+}
+
+function sendCallPcmChunk(samples) {
+  if (!callWs || callWs.readyState !== WebSocket.OPEN) return;
+  callWs.send(JSON.stringify({
+    type: "call.audio",
+    seq: ++callSeq,
+    pcm_b64: floatSamplesToPcmBase64(samples),
+    timestamp_ms: Date.now()
+  }));
+}
+
+function maybeSendBargeInterrupt(samples) {
+  if (!CALL_BARGE_IN_ENABLED) return;
+  if (callState !== "speaking" || callInterruptSent || !samples.length) return;
+  var sum = 0;
+  for (var i = 0; i < samples.length; i++) sum += samples[i] * samples[i];
+  var rms = Math.sqrt(sum / samples.length);
+  if (rms >= CALL_SPEECH_RMS) {
+    callBargeMs += samples.length / CALL_SAMPLE_RATE * 1000;
+  } else {
+    callBargeMs = 0;
+  }
+  if (callBargeMs >= 300 && callWs && callWs.readyState === WebSocket.OPEN) {
+    callInterruptSent = true;
+    callWs.send(JSON.stringify({ type: "call.interrupt", reason: "barge_in" }));
+  }
+}
+
+function floatSamplesToPcmBase64(samples) {
+  var buffer = new ArrayBuffer(samples.length * 2);
+  var view = new DataView(buffer);
+  for (var i = 0; i < samples.length; i++) {
+    var s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(i * 2, s < 0 ? s * 32768 : s * 32767, true);
+  }
+  var bytes = new Uint8Array(buffer);
+  var binary = "";
+  var step = 0x8000;
+  for (var offset = 0; offset < bytes.length; offset += step) {
+    var slice = bytes.subarray(offset, offset + step);
+    binary += String.fromCharCode.apply(null, slice);
+  }
+  return btoa(binary);
+}
+
+function pcmBase64ToFloat32(base64) {
+  var binary = atob(base64);
+  var length = Math.floor(binary.length / 2);
+  var samples = new Float32Array(length);
+  for (var i = 0; i < length; i++) {
+    var lo = binary.charCodeAt(i * 2);
+    var hi = binary.charCodeAt(i * 2 + 1);
+    var value = lo | (hi << 8);
+    if (value >= 0x8000) value -= 0x10000;
+    samples[i] = value / 32768;
+  }
+  return samples;
+}
+
+function disconnectSensor() {
+  clearTimeout(sensorReconnectTimer);
+  sensorReconnectTimer = null;
+  sensorBound = false;
+  if (sensorWs) {
+    try {
+      sensorWs.onopen = null;
+      sensorWs.onmessage = null;
+      sensorWs.onerror = null;
+      sensorWs.onclose = null;
+      sensorWs.close();
+    } catch (err) {}
+  }
+  sensorWs = null;
+  renderDebug();
+}
+
+function reconnectSensor() {
+  disconnectSensor();
+  connectSensor();
+}
+
+function connectSensor() {
+  if (sensorWs && (sensorWs.readyState === WebSocket.OPEN || sensorWs.readyState === WebSocket.CONNECTING)) return;
+  if (!currentConfig.host || !currentConfig.port) {
+    log("sensor config missing");
+    return;
+  }
+
+  try {
+    sensorWs = new WebSocket(sensorUrl());
+  } catch (err) {
+    log("sensor url failed " + err.message);
+    return;
+  }
+
+  sensorWs.onopen = function() {
+    clearTimeout(sensorReconnectTimer);
+    sensorReconnectTimer = null;
+    sensorBound = false;
+    bindSession();
+    setLastDebug("sensor open");
+    maybeAutoCloseDrawer();
+  };
+  sensorWs.onmessage = function(ev) {
+    var msg;
+    try {
+      msg = JSON.parse(ev.data);
+    } catch (err) {
+      return;
+    }
+    if (msg.type === "sensor.bound") {
+      sessionId = msg.session_id || sessionId;
+      if (sessionId) {
+        currentConfig.session = sessionId;
+        sessionInput.value = sessionId;
+        storageSet("sc_session", sessionId);
+      }
+      sensorBound = true;
+      setLastDebug(msg.auto ? "auto bound" : "sensor.bound");
+      log("bound " + sessionId);
+      maybeAutoCloseDrawer();
+      flushPendingFirstTouch();
+    } else if (msg.type === "sensor.waiting_session") {
+      sensorBound = false;
+      setLastDebug("waiting Unity session");
+      log("waiting Unity session");
+    } else if (msg.type === "sensor.ack") {
+      setLastDebug((msg.event || "?") + " " + (msg.accepted ? "ok" : "reject") + " " + (msg.latency_ms || 0) + "ms");
+    } else if (msg.type === "avatar.anchors") {
+      applyAnchors(msg);
+    } else if (msg.type === "error") {
+      setLastDebug(msg.message || "error");
+      log("sensor error " + (msg.message || ""));
+    }
+  };
+  sensorWs.onerror = function() {
+    log("sensor ws error");
+  };
+  sensorWs.onclose = function() {
+    sensorBound = false;
+    renderDebug();
+    sensorReconnectTimer = setTimeout(connectSensor, 2500);
+  };
+  renderDebug();
+}
+
+function bindSession() {
+  sessionId = currentConfig.session || trimText(storageGet("sc_session"));
+  if (!sensorWs || sensorWs.readyState !== WebSocket.OPEN) return;
+  if (!sessionId) {
+    sensorBound = false;
+    sensorWs.send(JSON.stringify({ type: "sensor.bind" }));
+    setLastDebug("waiting session");
+    log("auto session requested");
+    renderDebug();
+    return;
+  }
+  sensorWs.send(JSON.stringify({ type: "sensor.bind", session_id: sessionId }));
+}
+
+function sendEvent(event, zone, value) {
+  if (!interactionReady()) {
+    queueFirstTouchEvent(event, zone, value);
+    if (!sensorBound) bindSession();
+    return;
+  }
+
+  sendEventNow(event, zone, value);
+}
+
+function sendEventNow(event, zone, value) {
+  sessionId = currentConfig.session || trimText(storageGet("sc_session"));
+  if (!sensorWs || sensorWs.readyState !== WebSocket.OPEN) {
+    setLastDebug("offline " + event);
+    log("sensor offline for " + event);
+    return;
+  }
+  if (!sessionId && !sensorBound) {
+    var now = Date.now();
+    if (now - lastMissingSessionLog > 2000) {
+      lastMissingSessionLog = now;
+      setLastDebug("waiting session");
+      log("waiting session for " + event);
+      bindSession();
+    }
+    return;
+  }
+  var payloadValue = value || {};
+  if (zone && !payloadValue.zone) payloadValue.zone = zone;
+  var payload = {
+    type: "sensor.event",
+    event: event,
+    zone: zone || null,
+    value: payloadValue,
+    timestamp_ms: Date.now()
+  };
+  if (sessionId) payload.session_id = sessionId;
+  sensorWs.send(JSON.stringify(payload));
+  setLastDebug("sent " + event);
+  log(event + (zone ? " @" + zone : ""));
+}
+
+function closeVideoPeer() {
+  videoPeerSeq++;
+  if (videoPc) {
+    try {
+      videoPc.ontrack = null;
+      videoPc.onicecandidate = null;
+      videoPc.oniceconnectionstatechange = null;
+      videoPc.onconnectionstatechange = null;
+      videoPc.close();
+    } catch (err) {}
+  }
+  videoPc = null;
+  pcConnected = false;
+  if (video.srcObject) {
+    try {
+      video.srcObject.getTracks().forEach(function(track) { track.stop(); });
+    } catch (err2) {}
+  }
+  video.srcObject = null;
+  videoReady = false;
+  renderDebug();
+}
+
+function disconnectVideo() {
+  clearTimeout(videoReconnectTimer);
+  videoReconnectTimer = null;
+  if (videoWs) {
+    try {
+      videoWs.onopen = null;
+      videoWs.onmessage = null;
+      videoWs.onerror = null;
+      videoWs.onclose = null;
+      videoWs.close();
+    } catch (err) {}
+  }
+  videoWs = null;
+  closeVideoPeer();
+}
+
+function reconnectVideo() {
+  disconnectVideo();
+  connectVideo();
+}
+
+function connectVideo() {
+  if (videoWs && (videoWs.readyState === WebSocket.OPEN || videoWs.readyState === WebSocket.CONNECTING)) return;
+  if (!currentConfig.host || !currentConfig.signalPort) {
+    log("video config missing");
+    return;
+  }
+  if (typeof RTCPeerConnection === "undefined") {
+    log("WebRTC unsupported");
+    return;
+  }
+  if (effectiveIcePolicy() === "relay" && !hasConfiguredTurnServer()) {
+    log("relay ICE needs turn params");
+    setLastDebug("missing TURN config");
+  }
+
+  try {
+    videoWs = new WebSocket(videoUrl());
+  } catch (err) {
+    log("video url failed " + err.message);
+    return;
+  }
+
+  videoWs.onopen = function() {
+    clearTimeout(videoReconnectTimer);
+    videoReconnectTimer = null;
+    setLastDebug("video ws open");
+    maybeAutoCloseDrawer();
+  };
+  videoWs.onmessage = onVideoSignalMessage;
+  videoWs.onerror = function() {
+    log("video ws error");
+  };
+  videoWs.onclose = function(ev) {
+    closeVideoPeer();
+    videoWs = null;
+    renderDebug();
+    if (ev && (ev.code === 4000 || String(ev.reason || "").indexOf("replaced") >= 0)) {
+      log("video viewer replaced");
+      return;
+    }
+    videoReconnectTimer = setTimeout(connectVideo, 3000);
+  };
+  renderDebug();
+}
+
+async function onVideoSignalMessage(ev) {
+  var msg;
+  try {
+    msg = JSON.parse(ev.data);
+  } catch (err) {
+    return;
+  }
+  if (msg.type === "offer") {
+    await handleVideoOffer(msg);
+  } else if (msg.type === "candidate" && videoPc) {
+    if (!shouldUseIceCandidate(msg.data && msg.data.candidate)) {
+      log("skip remote candidate");
+      return;
+    }
+    try {
+      await videoPc.addIceCandidate(new RTCIceCandidate(msg.data));
+    } catch (err2) {
+      log("candidate failed " + err2.message);
+    }
+  } else if (msg.type === "error") {
+    log("video error " + (msg.message || ""));
+  }
+}
+
+async function handleVideoOffer(msg) {
+  try {
+    unityConnectionId = msg.from || "";
+    closeVideoPeer();
+    var mySeq = ++videoPeerSeq;
+    videoPc = new RTCPeerConnection({
+      iceTransportPolicy: effectiveIcePolicy(),
+      iceServers: configuredIceServers()
+    });
+    videoPc.onconnectionstatechange = function() {
+      pcConnected = videoPc && (videoPc.connectionState === "connected" || videoPc.connectionState === "completed");
+      if (pcConnected) flushPendingFirstTouch();
+      renderDebug();
+    };
+    videoPc.oniceconnectionstatechange = function() {
+      pcConnected = videoPc && (videoPc.iceConnectionState === "connected" || videoPc.iceConnectionState === "completed");
+      if (pcConnected) flushPendingFirstTouch();
+      renderDebug();
+    };
+    videoPc.ontrack = function(trackEvent) {
+      if (mySeq !== videoPeerSeq) return;
+      var stream = trackEvent.streams && trackEvent.streams[0] ? trackEvent.streams[0] : new MediaStream([trackEvent.track]);
+      video.srcObject = stream;
+      videoReady = true;
+      video.muted = true;
+      video.play().then(function() {
+        videoReady = true;
+        setLastDebug("video playing");
+        maybeAutoCloseDrawer();
+        flushPendingFirstTouch();
+      }).catch(function(err) {
+        log("play failed " + err.message);
+      });
+    };
+    videoPc.onicecandidate = function(candidateEvent) {
+      if (mySeq !== videoPeerSeq) return;
+      if (!candidateEvent.candidate || !videoWs || videoWs.readyState !== WebSocket.OPEN) return;
+      videoWs.send(JSON.stringify({
+        from: unityConnectionId,
+        type: "candidate",
+        data: {
+          candidate: candidateEvent.candidate.candidate,
+          sdpMLineIndex: candidateEvent.candidate.sdpMLineIndex,
+          sdpMid: candidateEvent.candidate.sdpMid
+        }
+      }));
+    };
+    await videoPc.setRemoteDescription(new RTCSessionDescription({ type: "offer", sdp: msg.data && msg.data.sdp }));
+    if (mySeq !== videoPeerSeq) return;
+    var answer = await videoPc.createAnswer();
+    await videoPc.setLocalDescription(answer);
+    if (videoWs && videoWs.readyState === WebSocket.OPEN) {
+      videoWs.send(JSON.stringify({ from: unityConnectionId, type: "answer", data: { sdp: answer.sdp } }));
+    }
+    renderDebug();
+  } catch (err) {
+    log("offer failed " + err.message);
+  }
+}
+
+function shouldUseIceCandidate(candidate) {
+  var text = String(candidate || "");
+  if (!text) return true;
+  var lanHost = normalizeHost(storageGet("sc_lan_host") || currentConfig.host);
+  if (!lanHost || lanHost === "127.0.0.1" || lanHost === "localhost") return true;
+  if (text.indexOf(" typ relay ") >= 0) return true;
+  if (text.indexOf(" typ host ") >= 0) return text.indexOf(" " + lanHost + " ") >= 0;
+  if (text.indexOf(" typ srflx ") >= 0) return false;
+  return true;
+}
+
+function applyAnchors(msg) {
+  var next = {};
+  var raw = msg.anchors && typeof msg.anchors === "object" ? msg.anchors : {};
+  Object.keys(raw).forEach(function(key) {
+    var item = raw[key] || {};
+    var anatomicalZone = normalizeZone(key);
+    if (!anatomicalZone) return;
+    var anchor = buildAnchor(item, anatomicalZone, anatomicalZone);
+    if (anchor) next[anatomicalZone] = anchor;
+  });
+  anchors = toVisualAnchorMap(next);
+  anchorsUpdatedAt = Date.now();
+  renderDebug();
+}
+
+function anchorsAreFresh() {
+  return Date.now() - anchorsUpdatedAt <= ANCHOR_TTL_MS && liveAnchorCount() > 0;
+}
+
+function liveAnchorCount() {
+  return BODY_TOUCH_ZONES.reduce(function(count, zone) {
+    return count + (anchors[zone] ? 1 : 0);
+  }, 0);
+}
+
+function fallbackAnchors() {
+  var anatomical = {
+    head: zoneAnchor(0.5, 0.15, 0.075, "head", "head"),
+    face: zoneAnchor(0.5, 0.25, 0.09, "face", "face"),
+    neck: zoneAnchor(0.5, 0.34, 0.055, "neck", "neck"),
+    chest: zoneAnchor(0.5, 0.45, 0.13, "chest", "chest"),
+    waist: zoneAnchor(0.5, 0.58, 0.12, "waist", "waist"),
+    right_shoulder: zoneAnchor(0.36, 0.38, 0.07, "right_shoulder", "right_shoulder"),
+    left_shoulder: zoneAnchor(0.64, 0.38, 0.07, "left_shoulder", "left_shoulder"),
+    right_upper_arm: zoneAnchor(0.29, 0.48, 0.07, "right_upper_arm", "right_upper_arm"),
+    left_upper_arm: zoneAnchor(0.71, 0.48, 0.07, "left_upper_arm", "left_upper_arm"),
+    right_forearm: zoneAnchor(0.24, 0.61, 0.075, "right_forearm", "right_forearm"),
+    left_forearm: zoneAnchor(0.76, 0.61, 0.075, "left_forearm", "left_forearm"),
+    right_hand: zoneAnchor(0.22, 0.73, 0.08, "right_hand", "right_hand"),
+    left_hand: zoneAnchor(0.78, 0.73, 0.08, "left_hand", "left_hand"),
+    right_thigh: zoneAnchor(0.42, 0.72, 0.085, "right_thigh", "right_thigh"),
+    left_thigh: zoneAnchor(0.58, 0.72, 0.085, "left_thigh", "left_thigh"),
+    right_calf: zoneAnchor(0.42, 0.84, 0.075, "right_calf", "right_calf"),
+    left_calf: zoneAnchor(0.58, 0.84, 0.075, "left_calf", "left_calf"),
+    right_foot: zoneAnchor(0.39, 0.94, 0.07, "right_foot", "right_foot"),
+    left_foot: zoneAnchor(0.61, 0.94, 0.07, "left_foot", "left_foot")
+  };
+  return toVisualAnchorMap(anatomical);
+}
+
+function zoneAnchor(x, y, r, visualZone, anatomicalZone) {
+  var zone = normalizeZone(visualZone);
+  var anatomical = normalizeZone(anatomicalZone || zone) || zone;
+  var meta = BODY_ZONE_META[zone] || {};
+  return {
+    x: x,
+    y: y,
+    r: r,
+    visible: true,
+    side: meta.side || "center",
+    body_group: meta.body_group || zone,
+    confidence: 0.62,
+    visual_zone: zone,
+    anatomical_zone: anatomical,
+    zone_basis: "screen_visual",
+    anchors_live: false
+  };
+}
+
+function currentAnchors() {
+  var fallback = fallbackAnchors();
+  if (!anchorsAreFresh()) return fallback;
+  var merged = {};
+  BODY_TOUCH_ZONES.forEach(function(zone) {
+    var liveAnchor = anchors[zone];
+    merged[zone] = liveAnchor && liveAnchor.visible !== false ? liveAnchor : fallback[zone];
+  });
+  return merged;
+}
+
+function buildAnchor(item, visualZone, anatomicalZone) {
+  var zone = normalizeZone(visualZone);
+  var anatomical = normalizeZone(anatomicalZone || zone) || zone;
+  if (!zone) return null;
+  var meta = BODY_ZONE_META[zone] || {};
+  return {
+    x: clamp01(Number(item.x)),
+    y: clamp01(Number(item.y)),
+    r: Math.max(0.01, Math.min(0.35, Number(item.r || item.radius) || 0.06)),
+    visible: item.visible !== false,
+    side: meta.side || trimText(item.side) || "center",
+    body_group: trimText(item.body_group) || meta.body_group || zone,
+    confidence: Number(item.confidence) || 1,
+    visual_zone: zone,
+    anatomical_zone: anatomical,
+    zone_basis: "screen_visual",
+    anchors_live: true
+  };
+}
+
+function cloneAnchorAsVisual(anchor, visualZone) {
+  if (!anchor) return null;
+  var zone = normalizeZone(visualZone);
+  if (!zone) return null;
+  var meta = BODY_ZONE_META[zone] || {};
+  return {
+    x: anchor.x,
+    y: anchor.y,
+    r: anchor.r,
+    visible: anchor.visible,
+    side: meta.side || "center",
+    body_group: meta.body_group || anchor.body_group || zone,
+    confidence: anchor.confidence,
+    visual_zone: zone,
+    anatomical_zone: normalizeZone(anchor.anatomical_zone || zone) || zone,
+    zone_basis: "screen_visual",
+    anchors_live: anchor.anchors_live === true
+  };
+}
+
+function toVisualAnchorMap(anatomicalMap) {
+  var visual = {};
+  CENTER_ANCHOR_ZONES.forEach(function(zone) {
+    if (anatomicalMap[zone]) visual[zone] = cloneAnchorAsVisual(anatomicalMap[zone], zone);
+  });
+  SIDE_ANCHOR_PAIRS.forEach(function(pair) {
+    var anatomicalLeft = anatomicalMap[pair[0]];
+    var anatomicalRight = anatomicalMap[pair[1]];
+    var visible = [anatomicalLeft, anatomicalRight].filter(function(anchor) {
+      return anchor && anchor.visible !== false;
+    });
+    if (visible.length === 2) {
+      visible.sort(function(a, b) { return a.x - b.x; });
+      visual[pair[0]] = cloneAnchorAsVisual(visible[0], pair[0]);
+      visual[pair[1]] = cloneAnchorAsVisual(visible[1], pair[1]);
+    } else if (visible.length === 1) {
+      var visualZone = visible[0].x <= 0.5 ? pair[0] : pair[1];
+      visual[visualZone] = cloneAnchorAsVisual(visible[0], visualZone);
+    } else {
+      if (anatomicalLeft && anatomicalLeft.visible !== false) visual[pair[0]] = cloneAnchorAsVisual(anatomicalLeft, pair[0]);
+      if (anatomicalRight && anatomicalRight.visible !== false) visual[pair[1]] = cloneAnchorAsVisual(anatomicalRight, pair[1]);
+    }
+  });
+  return visual;
+}
+
+function hitTest(point, metrics) {
+  var list = currentAnchors();
+  var best = null;
+  var nearest = null;
+  var fit = metrics || videoFitMetrics();
+  var contentMin = Math.max(1, Math.min(fit.contentW, fit.contentH));
+  for (var i = 0; i < BODY_TOUCH_ZONES.length; i++) {
+    var zone = BODY_TOUCH_ZONES[i];
+    var anchor = list[zone];
+    if (!anchor || anchor.visible === false) continue;
+    var dx = (point.x - anchor.x) * fit.contentW;
+    var dy = (point.y - anchor.y) * fit.contentH;
+    var distance = Math.sqrt(dx * dx + dy * dy);
+    var radius = pixelRadiusForZone(zone, anchor, contentMin);
+    var confidence = (1 - Math.min(distance, radius) / Math.max(1, radius)) * (Number(anchor.confidence) || 1);
+    var candidate = {
+      anchor: anchor.anatomical_zone || zone,
+      zone: zone,
+      visual_zone: zone,
+      anatomical_zone: anchor.anatomical_zone || zone,
+      zone_basis: anchor.zone_basis || "screen_visual",
+      side: anchor.side || (BODY_ZONE_META[zone] && BODY_ZONE_META[zone].side) || "center",
+      body_group: anchor.body_group || (BODY_ZONE_META[zone] && BODY_ZONE_META[zone].body_group) || zone,
+      anchors_live: anchor.anchors_live === true,
+      confidence: Number(Math.max(0.35, confidence).toFixed(2)),
+      distance_px: distance,
+      radius_px: radius
+    };
+    if (!nearest || distance - radius < nearest.distance_px - nearest.radius_px) {
+      nearest = candidate;
+    }
+    if (distance <= radius) {
+      if (!best || confidence > best.confidence) {
+        best = candidate;
+      }
+    }
+  }
+  if (!best && nearest && nearest.distance_px <= nearest.radius_px + HIT_RADIUS_GRACE_PX) {
+    nearest.confidence = Number(Math.max(0.35, nearest.confidence * 0.82).toFixed(2));
+    return nearest;
+  }
+  return best;
+}
+
+function pixelRadiusForZone(zone, anchor, contentMin) {
+  var group = (BODY_ZONE_META[zone] && BODY_ZONE_META[zone].body_group) || zone;
+  var minPx = 46;
+  if (group === "head" || group === "face" || group === "hand") minPx = 56;
+  else if (group === "chest" || group === "waist") minPx = 52;
+  return Math.max(minPx, Math.max(anchor.r, 0.001) * contentMin * HIT_RADIUS_SCALE);
+}
+
+function zoneTapEvent(zone) {
+  return "tap_" + normalizeZone(zone);
+}
+
+function zoneHoldEvent(zone) {
+  return "hold_" + normalizeZone(zone);
+}
+
+function normalizeZone(zone) {
+  var normalized = trimText(zone).toLowerCase();
+  normalized = ANCHOR_ALIASES[normalized] || normalized;
+  return BODY_ZONE_META[normalized] ? normalized : "";
+}
+
+function videoFitMetrics() {
+  var rect = video.getBoundingClientRect();
+  var videoAspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+  var rectAspect = rect.width / Math.max(1, rect.height);
+  var contentW = rect.width;
+  var contentH = rect.height;
+  var offsetX = 0;
+  var offsetY = 0;
+  if (rectAspect > videoAspect) {
+    contentH = rect.height;
+    contentW = rect.height * videoAspect;
+    offsetX = (rect.width - contentW) / 2;
+  } else {
+    contentW = rect.width;
+    contentH = rect.width / videoAspect;
+    offsetY = (rect.height - contentH) / 2;
+  }
+  return {
+    rect: rect,
+    contentW: contentW,
+    contentH: contentH,
+    offsetX: offsetX,
+    offsetY: offsetY
+  };
+}
+
+function videoPointFromClient(clientX, clientY) {
+  var metrics = videoFitMetrics();
+  return {
+    x: clamp01((clientX - metrics.rect.left - metrics.offsetX) / Math.max(1, metrics.contentW)),
+    y: clamp01((clientY - metrics.rect.top - metrics.offsetY) / Math.max(1, metrics.contentH))
+  };
+}
+
+function pointValue(point, hit, extra) {
+  var value = {
+    touch_x: Number(point.x.toFixed(3)),
+    touch_y: Number(point.y.toFixed(3)),
+    zone: hit ? hit.zone : null,
+    visual_zone: hit ? hit.visual_zone || hit.zone : null,
+    anatomical_zone: hit ? hit.anatomical_zone || hit.zone : null,
+    zone_basis: hit ? hit.zone_basis || "screen_visual" : "screen_visual",
+    anchor: hit ? hit.anchor : null,
+    side: hit ? hit.side : null,
+    body_group: hit ? hit.body_group : null,
+    anchors_live: hit ? hit.anchors_live === true : anchorsAreFresh(),
+    confidence: hit ? hit.confidence : 0
+  };
+  Object.keys(extra || {}).forEach(function(key) {
+    value[key] = extra[key];
+  });
+  return value;
+}
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+function isOverlayTarget(target) {
+  return configDrawer.contains(target) || debugLayer.contains(target) || callPanel.contains(target);
+}
+
+function startAvatarTouch(clientX, clientY, simulated) {
+  var point = videoPointFromClient(clientX, clientY);
+  var hit = hitTest(point);
+  currentHitZone = hit ? hit.zone : "-";
+  renderDebug();
+  activeTouch = {
+    mode: hit ? "avatar" : "empty",
+    x: clientX,
+    y: clientY,
+    startedAt: Date.now(),
+    point: point,
+    hit: hit,
+    simulated: !!simulated,
+    held: false
+  };
+  if (!hit) return;
+  clearTimeout(holdTimer);
+  holdTimer = setTimeout(function() {
+    if (!activeTouch || activeTouch.mode !== "avatar" || activeTouch.held) return;
+    activeTouch.held = true;
+    var value = pointValue(activeTouch.point, activeTouch.hit, { simulated: activeTouch.simulated });
+    sendEvent(zoneHoldEvent(activeTouch.hit.zone), activeTouch.hit.zone, value);
+  }, HOLD_MS);
+}
+
+function finishAvatarTouch(clientX, clientY) {
+  if (!activeTouch) return;
+  clearTimeout(holdTimer);
+  var touch = activeTouch;
+  activeTouch = null;
+  if (touch.mode === "multi") return;
+  if (touch.mode === "edge") {
+    if (touch.y - clientY >= EDGE_OPEN_PX && Math.abs(clientX - touch.x) < 90) {
+      setConfigOpen(true);
+    }
+    return;
+  }
+  var dx = clientX - touch.x;
+  var dy = clientY - touch.y;
+  var duration = Date.now() - touch.startedAt;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+  var finishPoint = videoPointFromClient(clientX, clientY);
+  var finishHit = hitTest(finishPoint);
+  var effectiveHit = touch.hit || (distance <= SWIPE_MIN_PX ? finishHit : null);
+  var effectivePoint = touch.hit ? touch.point : finishPoint;
+  currentHitZone = effectiveHit ? effectiveHit.zone : "-";
+  renderDebug();
+
+  if ((touch.mode !== "avatar" && touch.mode !== "empty") || touch.held || !effectiveHit) return;
+
+  if (distance > SWIPE_MIN_PX) {
+    sendEvent("swipe", effectiveHit.zone, pointValue(effectivePoint, effectiveHit, {
+      dx: Number(dx.toFixed(1)),
+      dy: Number(dy.toFixed(1)),
+      direction: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"),
+      duration_ms: duration,
+      simulated: touch.simulated
+    }));
+  } else if (duration <= TAP_MAX_MS) {
+    sendEvent(zoneTapEvent(effectiveHit.zone), effectiveHit.zone, pointValue(effectivePoint, effectiveHit, {
+      simulated: touch.simulated
+    }));
+  }
+}
+
+function cancelActiveTouch() {
+  clearTimeout(holdTimer);
+  clearTimeout(threeFingerTimer);
+  activeTouch = null;
+  activePointerId = null;
+  activePointerTouches = {};
+  currentHitZone = "-";
+  renderDebug();
+}
+
+function activePointerTouchCount() {
+  return Object.keys(activePointerTouches).length;
+}
+
+function forgetPointerTouch(ev) {
+  if (ev && ev.pointerType === "touch" && ev.pointerId != null) {
+    delete activePointerTouches[ev.pointerId];
+  }
+}
+
+function maybeCancelHoldOnMove(clientX, clientY) {
+  if (!activeTouch || activeTouch.mode !== "avatar") return;
+  var dx = clientX - activeTouch.x;
+  var dy = clientY - activeTouch.y;
+  if (Math.sqrt(dx * dx + dy * dy) > HOLD_CANCEL_PX) clearTimeout(holdTimer);
+}
+
+function activateThreeFingerMode() {
+  if (debugVisible && configOpen) {
+    setDebugVisible(false);
+    setConfigOpen(false);
+  } else {
+    setDebugVisible(true);
+    setConfigOpen(true);
+  }
+}
+
+function onTouchStart(ev) {
+  if (window.PointerEvent) return;
+  if (isOverlayTarget(ev.target)) return;
+  ev.preventDefault();
+  clearTimeout(threeFingerTimer);
+  if (ev.touches && ev.touches.length >= 3) {
+    cancelActiveTouch();
+    activeTouch = { mode: "multi" };
+    threeFingerTimer = setTimeout(activateThreeFingerMode, 700);
+    return;
+  }
+  if (configOpen) return;
+  var touch = ev.changedTouches && ev.changedTouches[0];
+  if (!touch) return;
+  if (window.innerHeight - touch.clientY <= EDGE_START_PX) {
+    activeTouch = { mode: "edge", x: touch.clientX, y: touch.clientY, startedAt: Date.now() };
+    return;
+  }
+  startAvatarTouch(touch.clientX, touch.clientY, false);
+}
+
+function onTouchMove(ev) {
+  if (window.PointerEvent) return;
+  if (isOverlayTarget(ev.target)) return;
+  ev.preventDefault();
+  var touch = ev.changedTouches && ev.changedTouches[0] || ev.touches && ev.touches[0];
+  if (touch) maybeCancelHoldOnMove(touch.clientX, touch.clientY);
+}
+
+function onTouchEnd(ev) {
+  if (window.PointerEvent) return;
+  if (isOverlayTarget(ev.target)) return;
+  ev.preventDefault();
+  clearTimeout(threeFingerTimer);
+  var touch = ev.changedTouches && ev.changedTouches[0];
+  if (!touch) {
+    cancelActiveTouch();
+    return;
+  }
+  finishAvatarTouch(touch.clientX, touch.clientY);
+}
+
+function onPointerDown(ev) {
+  if (isOverlayTarget(ev.target)) return;
+  if (ev.button != null && ev.button !== 0) return;
+  ev.preventDefault();
+  clearTimeout(threeFingerTimer);
+  if (ev.pointerType === "touch") {
+    activePointerTouches[ev.pointerId] = true;
+    if (activePointerTouchCount() >= 3) {
+      cancelActiveTouch();
+      activePointerTouches[ev.pointerId] = true;
+      activeTouch = { mode: "multi" };
+      threeFingerTimer = setTimeout(activateThreeFingerMode, 700);
+      return;
+    }
+    if (ev.isPrimary === false) return;
+  }
+  if (configOpen) return;
+  activePointerId = ev.pointerId;
+  if (window.innerHeight - ev.clientY <= EDGE_START_PX) {
+    activeTouch = { mode: "edge", x: ev.clientX, y: ev.clientY, startedAt: Date.now() };
+  } else {
+    startAvatarTouch(ev.clientX, ev.clientY, true);
+  }
+  if (stage.setPointerCapture && ev.pointerId != null) {
+    try { stage.setPointerCapture(ev.pointerId); } catch (err) {}
+  }
+}
+
+function onPointerMove(ev) {
+  if (activePointerId != null && ev.pointerId != null && ev.pointerId !== activePointerId) return;
+  if (isOverlayTarget(ev.target)) return;
+  if (ev.cancelable) ev.preventDefault();
+  maybeCancelHoldOnMove(ev.clientX, ev.clientY);
+}
+
+function onPointerUp(ev) {
+  forgetPointerTouch(ev);
+  if (activePointerId != null && ev.pointerId != null && ev.pointerId !== activePointerId) return;
+  ev.preventDefault();
+  clearTimeout(threeFingerTimer);
+  finishAvatarTouch(ev.clientX, ev.clientY);
+  activePointerId = null;
+}
+
+function onPointerCancel(ev) {
+  forgetPointerTouch(ev);
+  cancelActiveTouch();
+}
+
+function saveConfigAndConnect() {
+  setConfig({
+    host: hostInput.value,
+    port: portInput.value,
+    signalPort: signalInput.value,
+    session: sessionInput.value
+  });
+  writeConfig(currentConfig);
+  closeDrawerAfterConnect = true;
+  reconnectVideo();
+  reconnectSensor();
+  bindSession();
+  setLastDebug("saved config");
+}
+
+["touchstart", "touchmove", "touchend", "touchcancel", "pointerdown", "pointermove", "pointerup", "click"].forEach(function(type) {
+  configDrawer.addEventListener(type, function(ev) { ev.stopPropagation(); }, { passive: false });
+  debugLayer.addEventListener(type, function(ev) { ev.stopPropagation(); }, { passive: false });
+});
+
+configForm.addEventListener("submit", function(ev) {
+  ev.preventDefault();
+  saveConfigAndConnect();
+});
+drawerClose.addEventListener("click", function() {
+  closeDrawerAfterConnect = false;
+  setConfigOpen(false);
+});
+callToggle.addEventListener("click", startCall);
+stage.addEventListener("touchstart", onTouchStart, { passive: false });
+stage.addEventListener("touchmove", onTouchMove, { passive: false });
+stage.addEventListener("touchend", onTouchEnd, { passive: false });
+stage.addEventListener("touchcancel", function(ev) {
+  if (window.PointerEvent) return;
+  ev.preventDefault();
+  cancelActiveTouch();
+}, { passive: false });
+stage.addEventListener("pointerdown", onPointerDown);
+stage.addEventListener("pointermove", onPointerMove);
+stage.addEventListener("pointerup", onPointerUp);
+stage.addEventListener("pointercancel", onPointerCancel);
+document.addEventListener("touchmove", function(ev) {
+  if (!isOverlayTarget(ev.target)) ev.preventDefault();
+}, { passive: false });
+window.addEventListener("resize", renderDebug);
+
+applyUrlConfig();
+setConfig(readConfig());
+var startupParams = new URLSearchParams(location.search);
+setConfigOpen(startupParams.get("drawer") === "1");
+setDebugVisible(startupParams.get("debug") === "1");
+connectAll();
+setCallUi("idle", "");
+setInterval(renderDebug, 500);
+</script>
+</body>
+</html>

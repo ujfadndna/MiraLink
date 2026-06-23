@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "com.besty.unity-skills": "https://github.com/Besty0728/Unity-Skills.git?path=/SkillsForUnity#v2.0.3",
+    "com.gamebooom.unity.mcp": "https://github.com/FunplayAI/funplay-unity-mcp.git#v0.4.6",
+    "com.unity.inputsystem": "1.14.0",
+    "com.unity.renderstreaming": "file:com.unity.renderstreaming",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.webrtc": "https://github.com/Unity-Technologies/com.unity.webrtc.git#3.0.0-pre.8",
+    "com.vrmc.gltf": "https://github.com/vrm-c/UniVRM.git?path=/Packages/UniGLTF#v0.131.0",
+    "com.vrmc.vrm": "https://github.com/vrm-c/UniVRM.git?path=/Packages/VRM10#v0.131.0"
+  },
+  "testables": [
+    "com.besty.unity-skills"
+  ]
+}

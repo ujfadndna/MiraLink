@@ -1,0 +1,203 @@
+{
+  "V0": {
+    "case_count": 36,
+    "ok_count": 36,
+    "error_count": 0,
+    "lip_offset_ms": {
+      "mean": null,
+      "abs_mean": null,
+      "sample_count": 0
+    },
+    "gesture_timing_error": {
+      "mean_ms": null,
+      "sample_count": 0,
+      "note": "V2 only. Uses nearest explicit stress/emphasis time when present; otherwise nearest phoneme chunk boundary proxy."
+    },
+    "gesture_diversity": {
+      "unique_types": 0,
+      "total_events": 0,
+      "ratio": null
+    },
+    "emotion_consistency": 0.8611111111111112,
+    "fps": null,
+    "fps_note": "N/A: frame rate is not measurable in this in-process backend harness.",
+    "by_category": {
+      "contrast": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 0
+      },
+      "emotion": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "enumeration": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 0
+      },
+      "explanation": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "scene_pointing": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "self_intro": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.8333333333333334,
+        "gesture_events": 0
+      }
+    }
+  },
+  "V1": {
+    "case_count": 36,
+    "ok_count": 36,
+    "error_count": 0,
+    "lip_offset_ms": {
+      "mean": 80.0,
+      "abs_mean": 80.0,
+      "sample_count": 36
+    },
+    "gesture_timing_error": {
+      "mean_ms": null,
+      "sample_count": 0,
+      "note": "V2 only. Uses nearest explicit stress/emphasis time when present; otherwise nearest phoneme chunk boundary proxy."
+    },
+    "gesture_diversity": {
+      "unique_types": 0,
+      "total_events": 0,
+      "ratio": null
+    },
+    "emotion_consistency": 0.8611111111111112,
+    "fps": null,
+    "fps_note": "N/A: frame rate is not measurable in this in-process backend harness.",
+    "by_category": {
+      "contrast": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 0
+      },
+      "emotion": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "enumeration": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 0
+      },
+      "explanation": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "scene_pointing": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "self_intro": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.8333333333333334,
+        "gesture_events": 0
+      }
+    }
+  },
+  "V2": {
+    "case_count": 36,
+    "ok_count": 36,
+    "error_count": 0,
+    "lip_offset_ms": {
+      "mean": 80.0,
+      "abs_mean": 80.0,
+      "sample_count": 36
+    },
+    "gesture_timing_error": {
+      "mean_ms": 1.2402200478721748e-13,
+      "sample_count": 22,
+      "note": "V2 only. Uses nearest explicit stress/emphasis time when present; otherwise nearest phoneme chunk boundary proxy."
+    },
+    "gesture_diversity": {
+      "unique_types": 4,
+      "total_events": 22,
+      "ratio": 0.18181818181818182
+    },
+    "emotion_consistency": 0.8611111111111112,
+    "fps": null,
+    "fps_note": "N/A: frame rate is not measurable in this in-process backend harness.",
+    "by_category": {
+      "contrast": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 4
+      },
+      "emotion": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "enumeration": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.6666666666666666,
+        "gesture_events": 9
+      },
+      "explanation": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 6
+      },
+      "scene_pointing": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 1.0,
+        "gesture_events": 0
+      },
+      "self_intro": {
+        "cases": 6,
+        "ok": 6,
+        "error_count": 0,
+        "emotion_consistency": 0.8333333333333334,
+        "gesture_events": 3
+      }
+    }
+  }
+}

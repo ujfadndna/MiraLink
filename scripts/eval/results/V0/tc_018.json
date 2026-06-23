@@ -1,0 +1,313 @@
+{
+  "version": "V0",
+  "id": "tc_018",
+  "category": "enumeration",
+  "input": "如果要做演示，请按首先、然后、最后安排流程。",
+  "expected_emotion": "neutral",
+  "expected_acts": [
+    "enumerate"
+  ],
+  "expected_gesture_types": [
+    "gesture_enumerate"
+  ],
+  "ok": true,
+  "error": null,
+  "reply_text": "你说得很有条理。在技术实现上，我们也分三个阶段：第一，语义锚点提取；第二，韵律特征计算；第三，约束感知动作合成。",
+  "emotion": "neutral",
+  "dialogue_act": "enumerate",
+  "audio": {
+    "audio_path": "workspace\\audio\\aud_18e20fbc\\tts.wav",
+    "audio_id": "aud_18e20fbc",
+    "duration_ms": 10080.0,
+    "sample_rate": 24000,
+    "phoneme_intervals": [
+      {
+        "phoneme": "你",
+        "start_ms": 0.0,
+        "end_ms": 180.0
+      },
+      {
+        "phoneme": "说",
+        "start_ms": 180.0,
+        "end_ms": 360.0
+      },
+      {
+        "phoneme": "得",
+        "start_ms": 360.0,
+        "end_ms": 540.0
+      },
+      {
+        "phoneme": "很",
+        "start_ms": 540.0,
+        "end_ms": 720.0
+      },
+      {
+        "phoneme": "有",
+        "start_ms": 720.0,
+        "end_ms": 900.0
+      },
+      {
+        "phoneme": "条",
+        "start_ms": 900.0,
+        "end_ms": 1080.0
+      },
+      {
+        "phoneme": "理",
+        "start_ms": 1080.0,
+        "end_ms": 1260.0
+      },
+      {
+        "phoneme": "。",
+        "start_ms": 1260.0,
+        "end_ms": 1440.0
+      },
+      {
+        "phoneme": "在",
+        "start_ms": 1440.0,
+        "end_ms": 1620.0
+      },
+      {
+        "phoneme": "技",
+        "start_ms": 1620.0,
+        "end_ms": 1800.0
+      },
+      {
+        "phoneme": "术",
+        "start_ms": 1800.0,
+        "end_ms": 1980.0
+      },
+      {
+        "phoneme": "实",
+        "start_ms": 1980.0,
+        "end_ms": 2160.0
+      },
+      {
+        "phoneme": "现",
+        "start_ms": 2160.0,
+        "end_ms": 2340.0
+      },
+      {
+        "phoneme": "上",
+        "start_ms": 2340.0,
+        "end_ms": 2520.0
+      },
+      {
+        "phoneme": "，",
+        "start_ms": 2520.0,
+        "end_ms": 2700.0
+      },
+      {
+        "phoneme": "我",
+        "start_ms": 2700.0,
+        "end_ms": 2880.0
+      },
+      {
+        "phoneme": "们",
+        "start_ms": 2880.0,
+        "end_ms": 3060.0
+      },
+      {
+        "phoneme": "也",
+        "start_ms": 3060.0,
+        "end_ms": 3240.0
+      },
+      {
+        "phoneme": "分",
+        "start_ms": 3240.0,
+        "end_ms": 3420.0
+      },
+      {
+        "phoneme": "三",
+        "start_ms": 3420.0,
+        "end_ms": 3600.0
+      },
+      {
+        "phoneme": "个",
+        "start_ms": 3600.0,
+        "end_ms": 3780.0
+      },
+      {
+        "phoneme": "阶",
+        "start_ms": 3780.0,
+        "end_ms": 3960.0
+      },
+      {
+        "phoneme": "段",
+        "start_ms": 3960.0,
+        "end_ms": 4140.0
+      },
+      {
+        "phoneme": "：",
+        "start_ms": 4140.0,
+        "end_ms": 4320.0
+      },
+      {
+        "phoneme": "第",
+        "start_ms": 4320.0,
+        "end_ms": 4500.0
+      },
+      {
+        "phoneme": "一",
+        "start_ms": 4500.0,
+        "end_ms": 4680.0
+      },
+      {
+        "phoneme": "，",
+        "start_ms": 4680.0,
+        "end_ms": 4860.0
+      },
+      {
+        "phoneme": "语",
+        "start_ms": 4860.0,
+        "end_ms": 5040.0
+      },
+      {
+        "phoneme": "义",
+        "start_ms": 5040.0,
+        "end_ms": 5220.0
+      },
+      {
+        "phoneme": "锚",
+        "start_ms": 5220.0,
+        "end_ms": 5400.0
+      },
+      {
+        "phoneme": "点",
+        "start_ms": 5400.0,
+        "end_ms": 5580.0
+      },
+      {
+        "phoneme": "提",
+        "start_ms": 5580.0,
+        "end_ms": 5760.0
+      },
+      {
+        "phoneme": "取",
+        "start_ms": 5760.0,
+        "end_ms": 5940.0
+      },
+      {
+        "phoneme": "；",
+        "start_ms": 5940.0,
+        "end_ms": 6120.0
+      },
+      {
+        "phoneme": "第",
+        "start_ms": 6120.0,
+        "end_ms": 6300.0
+      },
+      {
+        "phoneme": "二",
+        "start_ms": 6300.0,
+        "end_ms": 6480.0
+      },
+      {
+        "phoneme": "，",
+        "start_ms": 6480.0,
+        "end_ms": 6660.0
+      },
+      {
+        "phoneme": "韵",
+        "start_ms": 6660.0,
+        "end_ms": 6840.0
+      },
+      {
+        "phoneme": "律",
+        "start_ms": 6840.0,
+        "end_ms": 7020.0
+      },
+      {
+        "phoneme": "特",
+        "start_ms": 7020.0,
+        "end_ms": 7200.0
+      },
+      {
+        "phoneme": "征",
+        "start_ms": 7200.0,
+        "end_ms": 7380.0
+      },
+      {
+        "phoneme": "计",
+        "start_ms": 7380.0,
+        "end_ms": 7560.0
+      },
+      {
+        "phoneme": "算",
+        "start_ms": 7560.0,
+        "end_ms": 7740.0
+      },
+      {
+        "phoneme": "；",
+        "start_ms": 7740.0,
+        "end_ms": 7920.0
+      },
+      {
+        "phoneme": "第",
+        "start_ms": 7920.0,
+        "end_ms": 8100.0
+      },
+      {
+        "phoneme": "三",
+        "start_ms": 8100.0,
+        "end_ms": 8280.0
+      },
+      {
+        "phoneme": "，",
+        "start_ms": 8280.0,
+        "end_ms": 8460.0
+      },
+      {
+        "phoneme": "约",
+        "start_ms": 8460.0,
+        "end_ms": 8640.0
+      },
+      {
+        "phoneme": "束",
+        "start_ms": 8640.0,
+        "end_ms": 8820.0
+      },
+      {
+        "phoneme": "感",
+        "start_ms": 8820.0,
+        "end_ms": 9000.0
+      },
+      {
+        "phoneme": "知",
+        "start_ms": 9000.0,
+        "end_ms": 9180.0
+      },
+      {
+        "phoneme": "动",
+        "start_ms": 9180.0,
+        "end_ms": 9360.0
+      },
+      {
+        "phoneme": "作",
+        "start_ms": 9360.0,
+        "end_ms": 9540.0
+      },
+      {
+        "phoneme": "合",
+        "start_ms": 9540.0,
+        "end_ms": 9720.0
+      },
+      {
+        "phoneme": "成",
+        "start_ms": 9720.0,
+        "end_ms": 9900.0
+      },
+      {
+        "phoneme": "。",
+        "start_ms": 9900.0,
+        "end_ms": 10080.0
+      }
+    ]
+  },
+  "viseme": {
+    "frame_count": 0,
+    "covered_ms": 0.0,
+    "duration_ms": null,
+    "frames": []
+  },
+  "gesture_events": []
+}

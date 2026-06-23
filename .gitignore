@@ -1,0 +1,113 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+*.egg
+
+# Unity
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/[Mm]emoryCaptures/
+unity/[Rr]ecordings/
+unity/[Aa]sset[Ss]tore[Tt]ools/
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+[Aa]sset[Ss]tore[Tt]ools/
+assets/Screenshots/
+assets/_Recovery/
+My project/
+*.pidb.meta
+*.pdb.meta
+*.unitypackage.meta
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+crashlytics-build.properties
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+
+# Agent/tool local state
+.agents/
+.claude/
+.codegraph/
+.funplay/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Env
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Models (large files)
+checkpoints/
+models/*.onnx
+models/*.pt
+models/*.bin
+models/*.safetensors
+
+# Data
+diagnostics/
+workspace/
+backend/workspace/
+*.npy
+*.npz
+*.wav
+*.mp3
+*.mp4
+!assets/Audio/**/*.wav
+!assets/Audio/**/*.mp3
+!Packages/**/*.wav
+
+# Build archives, installers, and runtime logs
+build*.tar.gz
+build*.zip
+build_v*/
+build_gl/
+*.log
+*.pid
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.alf
+tools/*.tar.gz
+tools/*.zip
+tools/*.run
+tools/*.exe
+tools/*.log
+tools/browser_test_*.png
+tools/browser_test_*.json
+tools/webrtc_stats_*.json
+tools/webrtc_stats_*.png
+backend/test_output.txt

@@ -1,0 +1,477 @@
+{
+  "version": "V2",
+  "id": "tc_025",
+  "category": "emotion",
+  "input": "我今天很开心，哈哈，演示终于跑通了！",
+  "expected_emotion": "happy",
+  "expected_acts": [
+    "greet",
+    "unknown"
+  ],
+  "expected_gesture_types": [
+    "gesture_greet"
+  ],
+  "ok": true,
+  "error": null,
+  "reply_text": "太好了！看到你开心我也很开心~",
+  "emotion": "happy",
+  "dialogue_act": "greet",
+  "audio": {
+    "audio_path": "workspace\\audio\\aud_fc325806\\tts.wav",
+    "audio_id": "aud_fc325806",
+    "duration_ms": 2699.9999999999995,
+    "sample_rate": 24000,
+    "phoneme_intervals": [
+      {
+        "phoneme": "太",
+        "start_ms": 0.0,
+        "end_ms": 179.99999999999997
+      },
+      {
+        "phoneme": "好",
+        "start_ms": 179.99999999999997,
+        "end_ms": 359.99999999999994
+      },
+      {
+        "phoneme": "了",
+        "start_ms": 359.99999999999994,
+        "end_ms": 539.9999999999999
+      },
+      {
+        "phoneme": "！",
+        "start_ms": 539.9999999999999,
+        "end_ms": 719.9999999999999
+      },
+      {
+        "phoneme": "看",
+        "start_ms": 719.9999999999999,
+        "end_ms": 899.9999999999999
+      },
+      {
+        "phoneme": "到",
+        "start_ms": 899.9999999999999,
+        "end_ms": 1079.9999999999998
+      },
+      {
+        "phoneme": "你",
+        "start_ms": 1079.9999999999998,
+        "end_ms": 1259.9999999999998
+      },
+      {
+        "phoneme": "开",
+        "start_ms": 1259.9999999999998,
+        "end_ms": 1439.9999999999998
+      },
+      {
+        "phoneme": "心",
+        "start_ms": 1439.9999999999998,
+        "end_ms": 1619.9999999999998
+      },
+      {
+        "phoneme": "我",
+        "start_ms": 1619.9999999999998,
+        "end_ms": 1799.9999999999998
+      },
+      {
+        "phoneme": "也",
+        "start_ms": 1799.9999999999998,
+        "end_ms": 1979.9999999999998
+      },
+      {
+        "phoneme": "很",
+        "start_ms": 1979.9999999999998,
+        "end_ms": 2159.9999999999995
+      },
+      {
+        "phoneme": "开",
+        "start_ms": 2159.9999999999995,
+        "end_ms": 2339.9999999999995
+      },
+      {
+        "phoneme": "心",
+        "start_ms": 2339.9999999999995,
+        "end_ms": 2519.9999999999995
+      },
+      {
+        "phoneme": "~",
+        "start_ms": 2519.9999999999995,
+        "end_ms": 2699.9999999999995
+      }
+    ]
+  },
+  "viseme": {
+    "frame_count": 46,
+    "covered_ms": 2779.9999999999995,
+    "duration_ms": 2699.9999999999995,
+    "frames": [
+      {
+        "start_ms": 0.0,
+        "end_ms": 80.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 80.0,
+        "end_ms": 160.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 160.0,
+        "end_ms": 179.99999999999997,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 179.99999999999997,
+        "end_ms": 260.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 260.0,
+        "end_ms": 340.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 340.0,
+        "end_ms": 359.99999999999994,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 359.99999999999994,
+        "end_ms": 439.99999999999994,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 439.99999999999994,
+        "end_ms": 520.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 520.0,
+        "end_ms": 539.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 539.9999999999999,
+        "end_ms": 619.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 619.9999999999999,
+        "end_ms": 699.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 699.9999999999999,
+        "end_ms": 719.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 719.9999999999999,
+        "end_ms": 799.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 799.9999999999999,
+        "end_ms": 879.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 879.9999999999999,
+        "end_ms": 899.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 899.9999999999999,
+        "end_ms": 979.9999999999999,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 979.9999999999999,
+        "end_ms": 1060.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1060.0,
+        "end_ms": 1079.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1079.9999999999998,
+        "end_ms": 1159.9999999999998,
+        "weights": {
+          "mouse_open": 0.25,
+          "lip_i": 0.6
+        }
+      },
+      {
+        "start_ms": 1159.9999999999998,
+        "end_ms": 1239.9999999999998,
+        "weights": {
+          "mouse_open": 0.25,
+          "lip_i": 0.6
+        }
+      },
+      {
+        "start_ms": 1239.9999999999998,
+        "end_ms": 1259.9999999999998,
+        "weights": {
+          "mouse_open": 0.25,
+          "lip_i": 0.6
+        }
+      },
+      {
+        "start_ms": 1259.9999999999998,
+        "end_ms": 1339.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1339.9999999999998,
+        "end_ms": 1419.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1419.9999999999998,
+        "end_ms": 1439.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1439.9999999999998,
+        "end_ms": 1519.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1519.9999999999998,
+        "end_ms": 1599.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1599.9999999999998,
+        "end_ms": 1619.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1619.9999999999998,
+        "end_ms": 1699.9999999999998,
+        "weights": {
+          "mouse_open": 0.4,
+          "lip_o": 0.6
+        }
+      },
+      {
+        "start_ms": 1699.9999999999998,
+        "end_ms": 1779.9999999999998,
+        "weights": {
+          "mouse_open": 0.4,
+          "lip_o": 0.6
+        }
+      },
+      {
+        "start_ms": 1779.9999999999998,
+        "end_ms": 1799.9999999999998,
+        "weights": {
+          "mouse_open": 0.4,
+          "lip_o": 0.6
+        }
+      },
+      {
+        "start_ms": 1799.9999999999998,
+        "end_ms": 1879.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1879.9999999999998,
+        "end_ms": 1959.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1959.9999999999998,
+        "end_ms": 1979.9999999999998,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 1979.9999999999998,
+        "end_ms": 2060.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2060.0,
+        "end_ms": 2140.0,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2140.0,
+        "end_ms": 2159.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2159.9999999999995,
+        "end_ms": 2239.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2239.9999999999995,
+        "end_ms": 2319.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2319.9999999999995,
+        "end_ms": 2339.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2339.9999999999995,
+        "end_ms": 2419.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2419.9999999999995,
+        "end_ms": 2499.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2499.9999999999995,
+        "end_ms": 2519.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2519.9999999999995,
+        "end_ms": 2599.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2599.9999999999995,
+        "end_ms": 2679.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2679.9999999999995,
+        "end_ms": 2699.9999999999995,
+        "weights": {
+          "mouse_open": 0.3,
+          "lip_a": 0.2
+        }
+      },
+      {
+        "start_ms": 2699.9999999999995,
+        "end_ms": 2779.9999999999995,
+        "weights": {
+          "mouse_open": 0.0
+        }
+      }
+    ]
+  },
+  "gesture_events": []
+}

@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>HerUnity Sensor Controller</title>
+  <style>
+    :root { --bg-primary:#0a0d14; --bg-secondary:#111827; --bg-card:#1a2235; --accent-cyan:#00d4ff; --accent-green:#00e676; --accent-amber:#ffab00; --accent-red:#ff4444; --text-primary:#e8f0fe; --text-muted:#6b7a99; --border:#2a3550; --zone-head:rgba(255,100,160,0.12); --zone-cheek:rgba(60,120,255,0.12); --zone-hand:rgba(0,200,120,0.12); --zone-head-hi:rgba(255,100,160,0.45); --zone-cheek-hi:rgba(60,120,255,0.45); --zone-hand-hi:rgba(0,200,120,0.45); --radius:10px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-primary); color:var(--text-primary); font-family:var(--font); -webkit-tap-highlight-color:transparent; touch-action:none; }
+    #app { display: flex; flex-direction: column; height: 100dvh; position: relative; }
+    #video-shell { position: relative; flex: 0 0 clamp(230px, 38dvh, 380px); background: #05070b; border-bottom: 1px solid var(--border); overflow: hidden; }
+    #unity-video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+    #video-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(232,240,254,0.54); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; background: linear-gradient(180deg, rgba(5,7,11,0.25), rgba(5,7,11,0.55)); }
+    #video-placeholder.hidden { display: none; }
+    #video-bar { position: absolute; left: 8px; right: 8px; bottom: 8px; display: grid; grid-template-columns: 10px minmax(0, 1fr) 62px 68px; align-items: center; gap: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: rgba(10,13,20,0.76); backdrop-filter: blur(8px); }
+    #video-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-red); }
+    #video-status-dot.connecting, #video-status-dot.offer { background: var(--accent-amber); animation: pulse 1s infinite; }
+    #video-status-dot.playing { background: var(--accent-green); }
+    #video-status-dot.failed { background: var(--accent-red); }
+    #video-status-text { min-width: 0; color: var(--text-primary); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #btn-video { font-size: 11px; padding: 6px 8px; }
+    #header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 8px 12px 7px; z-index: 100; flex-shrink: 0; }
+    .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .header-row:last-child { margin-bottom: 0; }
+    #app-title { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--accent-cyan); text-transform: uppercase; flex-shrink: 0; }
+    #status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--accent-red); transition: background 0.3s; }
+    #status-dot.connecting { background: var(--accent-amber); animation: pulse 1s infinite; }
+    #status-dot.connected  { background: var(--accent-green); }
+    #status-text { font-size: 12px; color: var(--text-muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .input-group { display: flex; gap: 6px; align-items: center; }
+    input[type="text"], input[type="number"] { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 13px; padding: 6px 8px; outline: none; -webkit-appearance: none; }
+    input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent-cyan); }
+    #ip-input    { flex: 1; min-width: 0; }
+    #port-input, #signaling-port-input  { width: 68px; }
+    #session-input { flex: 1; min-width: 0; font-family: monospace; font-size: 12px; }
+    .btn { border: none; border-radius: 7px; font-size: 13px; font-weight: 600; padding: 7px 14px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s, transform 0.1s; -webkit-appearance: none; }
+    .btn:active { transform: scale(0.95); opacity: 0.85; }
+    .btn-primary  { background: var(--accent-cyan);  color: #000; }
+    .btn-secondary{ background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-perm     { background: var(--accent-amber); color: #000; font-size: 12px; padding: 6px 10px; }
+    #perm-status  { font-size: 11px; color: var(--text-muted); }
+    #metrics-row { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:6px; }
+    .metric { background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:5px 6px; min-width:0; }
+    .metric-label { display:block; font-size:9px; letter-spacing:0.08em; color:var(--text-muted); text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .metric-value { display:block; margin-top:2px; font-size:13px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #avatar-state { color:var(--accent-amber); }
+    #unity-status { color:var(--accent-cyan); }
+    #latency-value.good { color:var(--accent-green); }
+    #latency-value.warn { color:var(--accent-amber); }
+    #latency-value.bad { color:var(--accent-red); }
+    #primary-actions { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; margin-top:7px; }
+    .btn-action { min-width:0; min-height:36px; padding:6px 4px; font-size:12px; border-color:transparent; color:#061018; background:var(--accent-green); }
+    .btn-action:nth-child(1) { background:#ffcf5a; }
+    .btn-action:nth-child(2) { background:#7ee7ff; }
+    .btn-action:nth-child(3) { background:#7dffa7; }
+    .btn-action:nth-child(4) { background:#ff8f8f; }
+    #touch-area { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+    .zone { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; transition: background 0.15s; user-select: none; }
+    #zone-head  { background: var(--zone-head);  }
+    #zone-cheek { background: var(--zone-cheek); border-top: 1px solid rgba(255,255,255,0.04); }
+    #zone-hand  { background: var(--zone-hand);  border-top: 1px solid rgba(255,255,255,0.04); }
+    #zone-ui    { background: var(--bg-secondary); flex: 0 0 auto; border-top: 1px solid var(--border); display:block; padding: 0; }
+    .zone.flash-head  { background: var(--zone-head-hi);  }
+    .zone.flash-cheek { background: var(--zone-cheek-hi); }
+    .zone.flash-hand  { background: var(--zone-hand-hi);  }
+    .zone-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.35; pointer-events: none; }
+    #zone-head  .zone-label { color: #ff64a0; }
+    #zone-cheek .zone-label { color: #3c78ff; }
+    #zone-hand  .zone-label { color: #00c878; }
+    .ripple { position: absolute; border-radius: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.25); transform: scale(0); animation: ripple-anim 0.4s ease-out forwards; pointer-events: none; }
+    @keyframes ripple-anim {
+      to { transform: scale(4); opacity: 0; }
+    }
+    #tools-details { width:100%; }
+    #tools-details summary { list-style:none; cursor:pointer; min-height:40px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; user-select:none; }
+    #tools-details summary::-webkit-details-marker { display:none; }
+    #tools-content { display:flex; flex-direction:column; gap:6px; padding: 0 8px 8px; }
+    #debug-toggle-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+    #debug-label { font-size: 11px; color: var(--text-muted); }
+    #mic-row { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+    #btn-mic { width: 100%; min-height: 44px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--accent-cyan); border-radius: 7px; font-size: 15px; font-weight: 700; touch-action: none; -webkit-appearance: none; }
+    #btn-mic.recording { background: var(--accent-red); border-color: var(--accent-red); color: #fff; }
+    #voice-status { min-height: 14px; font-size: 11px; color: var(--text-muted); text-align: center; }
+    #voice-warning { display: none; font-size: 10px; color: var(--accent-amber); text-align: center; }
+    #sim-row { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; justify-content: center; }
+    .btn-sim { background: var(--bg-card); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); border-radius: 6px; font-size: 11px; font-weight: 600; padding: 5px 8px; cursor: pointer; transition: background 0.15s, transform 0.1s; -webkit-appearance: none; }
+    .btn-sim:active { transform: scale(0.92); background: rgba(0,212,255,0.2); }
+    #body-zone-row { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; justify-content: center; padding-top: 2px; }
+    .btn-zone { background: rgba(232,240,254,0.06); color: #d7e6ff; border-color: rgba(232,240,254,0.22); }
+    .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle input:checked + .toggle-slider { background: var(--accent-cyan); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+    #debug-panel { display: none; position: absolute; top: 0; left: 0; right: 0; background: rgba(10,13,20,0.88); padding: 8px 12px; font-size: 11px; font-family: monospace; color: var(--accent-cyan); z-index: 50; pointer-events: none; line-height: 1.6; }
+    #debug-panel.visible { display: block; }
+    #log-panel { background: var(--bg-secondary); border-top: 1px solid var(--border); padding: 6px 12px 8px; flex-shrink: 0; max-height: 110px; overflow: hidden; }
+    #log-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    #log-list { list-style: none; display: flex; flex-direction: column-reverse; gap: 2px; overflow: hidden; }
+    #log-list li { font-size: 11px; font-family: monospace; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #log-list li.log-sent    { color: var(--accent-green); }
+    #log-list li.log-imu     { color: var(--accent-cyan); }
+    #log-list li.log-touch   { color: #ff64a0; }
+    #log-list li.log-video   { color: #9ed0ff; }
+    #log-list li.log-system  { color: var(--accent-amber); }
+    #log-list li.log-error   { color: var(--accent-red); }
+    @media (max-height: 760px) {
+      #video-shell { flex-basis: 34dvh; }
+      #metrics-row { grid-template-columns:repeat(4, 1fr); gap:4px; }
+      .metric { padding:4px 5px; }
+      .metric-value { font-size:12px; }
+      #log-panel { max-height: 86px; }
+      #zone-head, #zone-cheek, #zone-hand { min-height: 44px; }
+    }
+    @media (max-width: 430px) {
+      #header { padding: 7px 10px 6px; }
+      #metrics-row .metric:nth-child(n+5) { display:none; }
+      #metrics-row { grid-template-columns:repeat(4, 1fr); }
+      #video-shell { flex-basis: clamp(250px, 38dvh, 340px); }
+      #zone-head, #zone-cheek, #zone-hand { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="video-shell">
+    <video id="unity-video" autoplay playsinline muted></video>
+    <div id="video-placeholder">Video offline</div>
+    <div id="video-bar">
+      <div id="video-status-dot"></div>
+      <div id="video-status-text">Video: disconnected</div>
+      <input type="number" id="signaling-port-input" placeholder="8080" value="8080" min="1" max="65535" aria-label="Signalling port">
+      <button class="btn btn-secondary" id="btn-video">重连</button>
+    </div>
+  </div>
+  <div id="header">
+    <div class="header-row">
+      <span id="app-title">HerUnity</span>
+      <div id="status-dot"></div>
+      <span id="status-text">未连接</span>
+      <button class="btn btn-secondary" id="btn-debug-small" style="font-size:11px;padding:4px 8px;">调试</button>
+    </div>
+    <div class="header-row input-group">
+      <input type="text"   id="ip-input"   placeholder="192.168.1.x" value="">
+      <input type="number" id="port-input" placeholder="8100" value="8100" min="1" max="65535">
+      <button class="btn btn-primary" id="btn-connect">连接</button>
+    </div>
+    <div class="header-row input-group">
+      <input type="text" id="session-input" placeholder="Session ID (见Unity HUD)">
+      <button class="btn btn-perm" id="btn-perm">申请传感器</button>
+      <span id="perm-status">--</span>
+    </div>
+    <div id="metrics-row">
+      <div class="metric"><span class="metric-label">Unity</span><span class="metric-value" id="unity-status">未绑定</span></div>
+      <div class="metric"><span class="metric-label">Avatar</span><span class="metric-value" id="avatar-state">Idle</span></div>
+      <div class="metric"><span class="metric-label">Latency</span><span class="metric-value" id="latency-value">-- ms</span></div>
+      <div class="metric"><span class="metric-label">Score</span><span class="metric-value" id="score-value">0</span></div>
+      <div class="metric"><span class="metric-label">Energy</span><span class="metric-value" id="energy-value">30</span></div>
+      <div class="metric"><span class="metric-label">Affinity</span><span class="metric-value" id="affinity-value">10</span></div>
+      <div class="metric"><span class="metric-label">Last</span><span class="metric-value" id="last-event-value">--</span></div>
+      <div class="metric"><span class="metric-label">Tilt</span><span class="metric-value" id="tilt-value">0 / 0</span></div>
+    </div>
+    <div id="primary-actions">
+      <button class="btn btn-action" data-event="shake">摇晃</button>
+      <button class="btn btn-action" data-event="tap">点击</button>
+      <button class="btn btn-action" data-event="wave">挥手</button>
+      <button class="btn btn-action" data-event="reset">重置</button>
+    </div>
+  </div>
+  <div id="touch-area">
+    <div id="debug-panel">
+      <div>ctx: <span id="dbg-context">--</span>  api: <span id="dbg-api">--</span>  events m/o: <span id="dbg-motion-count">0</span>/<span id="dbg-orient-count">0</span></div>
+      <div>alpha: <span id="dbg-alpha">--</span>  beta: <span id="dbg-beta">--</span>  gamma: <span id="dbg-gamma">--</span></div>
+      <div>ax: <span id="dbg-ax">--</span>  ay: <span id="dbg-ay">--</span>  az: <span id="dbg-az">--</span>  |a|: <span id="dbg-mag">--</span></div>
+      <div>state: <span id="dbg-state">--</span>  walk-buf: <span id="dbg-walk">--</span></div>
+    </div>
+    <div class="zone" id="zone-head" data-zone="head" data-event="tap_head">
+      <span class="zone-label">头顶 Head</span>
+    </div>
+    <div class="zone" id="zone-cheek" data-zone="cheek" data-event="tap_cheek">
+      <span class="zone-label">脸颊 Cheek</span>
+    </div>
+    <div class="zone" id="zone-hand" data-zone="hand" data-event="tap_hand">
+      <span class="zone-label">手部 Hand</span>
+    </div>
+    <div class="zone" id="zone-ui">
+      <details id="tools-details">
+        <summary>更多控制 / 调试</summary>
+        <div id="tools-content">
+          <div id="debug-toggle-row">
+            <label class="toggle">
+              <input type="checkbox" id="debug-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+            <span id="debug-label">调试模式</span>
+          </div>
+          <div id="mic-row">
+            <button id="btn-mic">按住说话</button>
+            <div id="voice-status"></div>
+            <div id="voice-warning">麦克风在 iOS Safari 需 HTTPS 或 localhost</div>
+          </div>
+          <div id="sim-row">
+            <button class="btn btn-sim" data-event="swipe">滑动</button>
+            <button class="btn btn-sim" data-event="pickup">拿起</button>
+            <button class="btn btn-sim" data-event="near_ear">贴近</button>
+            <button class="btn btn-sim" data-event="hold_head" data-zone="head">长按头</button>
+            <button class="btn btn-sim" data-event="hold_right_hand" data-zone="right_hand">牵手</button>
+          </div>
+          <div id="body-zone-row" aria-label="Body touch debug zones"></div>
+        </div>
+      </details>
+    </div>
+  </div><!-- /touch-area -->
+  <div id="log-panel">
+    <div id="log-title">事件日志</div>
+    <ul id="log-list"></ul>
+  </div>
+</div><!-- /app -->
+<script>
+'use strict';
+const ipInput       = document.getElementById('ip-input');
+const portInput     = document.getElementById('port-input');
+const signalingPortInput = document.getElementById('signaling-port-input');
+const sessionInput  = document.getElementById('session-input');
+const btnConnect    = document.getElementById('btn-connect');
+const btnVideo      = document.getElementById('btn-video');
+const btnPerm       = document.getElementById('btn-perm');
+const permStatus    = document.getElementById('perm-status');
+const statusDot     = document.getElementById('status-dot');
+const statusText    = document.getElementById('status-text');
+const unityVideo    = document.getElementById('unity-video');
+const videoPlaceholder = document.getElementById('video-placeholder');
+const videoStatusDot = document.getElementById('video-status-dot');
+const videoStatusText = document.getElementById('video-status-text');
+const debugPanel    = document.getElementById('debug-panel');
+const debugToggle   = document.getElementById('debug-toggle');
+const btnDebugSmall = document.getElementById('btn-debug-small');
+const logList       = document.getElementById('log-list');
+const btnMic        = document.getElementById('btn-mic');
+const voiceStatus   = document.getElementById('voice-status');
+const voiceWarning  = document.getElementById('voice-warning');
+const unityStatus   = document.getElementById('unity-status');
+const avatarState   = document.getElementById('avatar-state');
+const latencyValue  = document.getElementById('latency-value');
+const scoreValue    = document.getElementById('score-value');
+const energyValue   = document.getElementById('energy-value');
+const affinityValue = document.getElementById('affinity-value');
+const lastEventValue= document.getElementById('last-event-value');
+const tiltValue     = document.getElementById('tilt-value');
+// Debug value spans
+const dbgAlpha = document.getElementById('dbg-alpha');
+const dbgBeta  = document.getElementById('dbg-beta');
+const dbgGamma = document.getElementById('dbg-gamma');
+const dbgAx    = document.getElementById('dbg-ax');
+const dbgAy    = document.getElementById('dbg-ay');
+const dbgAz    = document.getElementById('dbg-az');
+const dbgMag   = document.getElementById('dbg-mag');
+const dbgState = document.getElementById('dbg-state');
+const dbgWalk  = document.getElementById('dbg-walk');
+const dbgContext = document.getElementById('dbg-context');
+const dbgApi = document.getElementById('dbg-api');
+const dbgMotionCount = document.getElementById('dbg-motion-count');
+const dbgOrientCount = document.getElementById('dbg-orient-count');
+const bodyZoneRow = document.getElementById('body-zone-row');
+let ws              = null;
+let wsConnected     = false;
+let reconnectTimer  = null;
+let reconnectPaused = false;
+let sessionId       = '';
+let lastMissingSessionLog = 0;
+let micStream       = null;
+let mediaRecorder   = null;
+let micChunks       = [];
+let recording       = false;
+let lastAudioSubmit = 0;
+let videoWs         = null;
+let videoPc         = null;
+let videoReconnectTimer = null;
+let videoReconnectPaused = false;
+let videoCloseExpectedFor = null;
+let videoPeerSeq    = 0;
+let unityConnectionId = '';
+let motionStarted = false;
+let orientationStarted = false;
+let motionEventCount = 0;
+let orientationEventCount = 0;
+let sensorNoEventTimer = null;
+const videoIceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+const videoIceTransportPolicy = localStorage.getItem('sc_ice_policy') || 'all';
+const BODY_TOUCH_ZONES = [
+  'head',
+  'face',
+  'neck',
+  'chest',
+  'waist',
+  'left_shoulder',
+  'right_shoulder',
+  'left_upper_arm',
+  'right_upper_arm',
+  'left_forearm',
+  'right_forearm',
+  'left_hand',
+  'right_hand',
+  'left_thigh',
+  'right_thigh',
+  'left_calf',
+  'right_calf',
+  'left_foot',
+  'right_foot',
+];
+const BODY_ZONE_LABELS = {
+  head: '头',
+  face: '脸',
+  neck: '颈',
+  chest: '胸',
+  waist: '腰',
+  left_shoulder: '左肩',
+  right_shoulder: '右肩',
+  left_upper_arm: '左上臂',
+  right_upper_arm: '右上臂',
+  left_forearm: '左前臂',
+  right_forearm: '右前臂',
+  left_hand: '左手',
+  right_hand: '右手',
+  left_thigh: '左大腿',
+  right_thigh: '右大腿',
+  left_calf: '左小腿',
+  right_calf: '右小腿',
+  left_foot: '左脚',
+  right_foot: '右脚',
+};
+const demoState = {
+  unity: '未绑定',
+  avatar: 'Idle',
+  energy: 30,
+  affinity: 10,
+  score: 0,
+  lastEvent: '--',
+  latency: null,
+};
+// IMU state machine
+const imu = {
+  alpha: 0, beta: 0, gamma: 0,
+  ax: 0, ay: 0, az: 0,
+  prevBeta: 0,
+  lastPickup:  0,
+  lastPutdown: 0,
+  lastShake:   0,
+  lastWalking: 0,
+  lastNearEar: 0,
+  lastDark:    0,
+  lastTilt:    0,
+  lastTiltBeta: 0,
+  lastTiltGamma: 0,
+  walkBuf:     [],
+  walkTimer:   null,
+};
+const THRESH = {
+  PICKUP_NOW:   60,   // |beta| > this means phone is vertical
+  PICKUP_PREV:  30,   // |beta| < this means phone was horizontal
+  PUTDOWN_NOW:  20,   // |beta| < this means phone is flat
+  PUTDOWN_PREV: 60,   // |beta| > this means phone was vertical
+  SHAKE:        25,   // net accel magnitude (m/s^2) to trigger shake
+  WALK_MIN:     1.0,  // walking: z-accel delta min per sample
+  WALK_MAX:     5.0,  // walking: z-accel delta max per sample
+  WALK_SAMPLES: 4,    // consecutive samples needed
+  NEAR_BETA:    70,   // near_ear: beta > this
+  NEAR_GAMMA:   30,   // near_ear: |gamma| < this
+  AMBIENT_LUX:  10,   // dark: lux < this
+  DEBOUNCE: {
+    pickup:   500,
+    putdown:  500,
+    shake:    1000,
+    walking:  3000,
+    near_ear: 2000,
+    dark:     5000,
+    tilt:     200,
+  },
+  TILT_DELTA: 4,
+};
+function logEvent(msg, cls) {
+  const ts = new Date().toTimeString().slice(0, 8);
+  const li = document.createElement('li');
+  li.textContent = '[' + ts + '] ' + msg;
+  if (cls) li.className = cls;
+  logList.prepend(li);
+  while (logList.children.length > 10) {
+    logList.removeChild(logList.lastChild);
+  }
+}
+function setStatus(state) {
+  statusDot.className = state;
+  if (state === 'connected')  { statusText.textContent = 'Connected'; }
+  else if (state === 'connecting') { statusText.textContent = 'Connecting...'; }
+  else { statusText.textContent = 'Disconnected'; }
+  wsConnected = (state === 'connected');
+}
+function renderDemoState() {
+  unityStatus.textContent = demoState.unity;
+  avatarState.textContent = demoState.avatar;
+  energyValue.textContent = demoState.energy;
+  affinityValue.textContent = demoState.affinity;
+  scoreValue.textContent = demoState.score;
+  lastEventValue.textContent = demoState.lastEvent;
+  if (demoState.latency == null) {
+    latencyValue.textContent = '-- ms';
+    latencyValue.className = 'metric-value';
+  } else {
+    latencyValue.textContent = demoState.latency + ' ms';
+    latencyValue.className = 'metric-value ' + (demoState.latency <= 300 ? 'good' : (demoState.latency <= 500 ? 'warn' : 'bad'));
+  }
+  tiltValue.textContent = imu.beta.toFixed(0) + ' / ' + imu.gamma.toFixed(0);
+}
+function renderSensorDebug() {
+  dbgContext.textContent = (window.isSecureContext ? 'secure' : 'insecure') + ' ' + window.location.protocol;
+  dbgApi.textContent =
+    'motion:' + (typeof DeviceMotionEvent !== 'undefined' ? 'Y' : 'N') +
+    ' orient:' + (typeof DeviceOrientationEvent !== 'undefined' ? 'Y' : 'N');
+  dbgMotionCount.textContent = String(motionEventCount);
+  dbgOrientCount.textContent = String(orientationEventCount);
+}
+function applyAck(msg) {
+  var latency = Number(msg.latency_ms);
+  demoState.latency = Number.isFinite(latency) ? latency : 0;
+  demoState.lastEvent = msg.event || demoState.lastEvent;
+  if (msg.accepted) {
+    demoState.unity = '已接收';
+    demoState.avatar = msg.event === 'reset' ? 'Connected' : 'Reacting';
+  } else if (msg.reason === 'rate_limited') {
+    demoState.unity = '节流';
+    demoState.avatar = 'Connected';
+  } else {
+    demoState.unity = '拒绝';
+    demoState.avatar = 'Error';
+  }
+  renderDemoState();
+}
+function applyLocalMetrics(event, accepted) {
+  if (!accepted) return;
+  if (event === 'reset') {
+    demoState.energy = 30;
+    demoState.affinity = 10;
+    demoState.score = 0;
+    demoState.avatar = 'Connected';
+    return;
+  }
+  var delta = {
+    shake: [8, 0, 10],
+    tilt: [0, 0, 0],
+    tap: [1, 3, 5],
+    tap_head: [1, 2, 5],
+    tap_cheek: [1, 2, 5],
+    tap_hand: [1, 4, 6],
+    hold_head: [0, 3, 3],
+    hold_cheek: [0, 3, 3],
+    hold_hand: [0, 5, 4],
+    swipe: [2, 1, 8],
+    wave: [2, 2, 6],
+    pickup: [2, 1, 3],
+    near_ear: [1, 2, 4],
+    walking: [0, 0, 0],
+    dark: [-1, 0, 0],
+  }[event];
+  if (!delta && event.indexOf('tap_') === 0) delta = [1, 2, 4];
+  if (!delta && event.indexOf('hold_') === 0) delta = [0, 3, 3];
+  if (!delta) delta = [0, 0, 0];
+  demoState.energy = Math.max(0, Math.min(100, demoState.energy + delta[0]));
+  demoState.affinity = Math.max(0, Math.min(100, demoState.affinity + delta[1]));
+  demoState.score = Math.max(0, demoState.score + delta[2]);
+}
+function getConfiguredHost() {
+  return ipInput.value.trim() || window.location.hostname || '127.0.0.1';
+}
+function buildWsUrl() {
+  const ip   = getConfiguredHost();
+  const port = portInput.value.trim() || '8100';
+  return (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + ip + ':' + port + '/ws/sensor';
+}
+function buildVideoWsUrl() {
+  const host = getConfiguredHost();
+  const port = signalingPortInput.value.trim() || '8080';
+  return (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + host + ':' + port + '/?role=viewer&replace=1';
+}
+function setVideoStatus(state, detail) {
+  videoStatusDot.className = state;
+  var label = {
+    disconnected: 'Video: disconnected',
+    connecting: 'Video: connecting',
+    offer: 'Video: offer',
+    playing: 'Video: playing',
+    failed: 'Video: failed',
+  }[state] || ('Video: ' + state);
+  videoStatusText.textContent = detail ? label + ' - ' + detail : label;
+  if (state === 'playing') {
+    videoPlaceholder.classList.add('hidden');
+  } else {
+    videoPlaceholder.classList.remove('hidden');
+    videoPlaceholder.textContent = state === 'failed' ? 'Video failed' : 'Video offline';
+  }
+}
+function closeVideoPeer() {
+  videoPeerSeq++;
+  if (videoPc) {
+    try {
+      videoPc.ontrack = null;
+      videoPc.onicecandidate = null;
+      videoPc.oniceconnectionstatechange = null;
+      videoPc.onconnectionstatechange = null;
+      videoPc.close();
+    } catch (err) {}
+  }
+  videoPc = null;
+  if (unityVideo.srcObject) {
+    try {
+      unityVideo.srcObject.getTracks().forEach(function(track) { track.stop(); });
+    } catch (err2) {}
+  }
+  unityVideo.srcObject = null;
+}
+function connectVideo() {
+  if (videoWs && (videoWs.readyState === WebSocket.OPEN || videoWs.readyState === WebSocket.CONNECTING)) return;
+  if (typeof RTCPeerConnection === 'undefined') {
+    setVideoStatus('failed', 'WebRTC unsupported');
+    logEvent('[video] WebRTC not supported', 'log-error');
+    return;
+  }
+  var url = buildVideoWsUrl();
+  setVideoStatus('connecting');
+  logEvent('[video] connecting -> ' + url, 'log-video');
+  var currentWs = new WebSocket(url);
+  videoWs = currentWs;
+  currentWs.onopen = function() {
+    clearTimeout(videoReconnectTimer);
+    setVideoStatus('connecting', 'waiting offer');
+    logEvent('[video] WS open', 'log-video');
+  };
+  currentWs.onmessage = onVideoSignalMessage;
+  currentWs.onerror = function() {
+    setVideoStatus('failed', 'signalling error');
+    logEvent('[video] WS error', 'log-error');
+  };
+  currentWs.onclose = function(e) {
+    closeVideoPeer();
+    var expected = videoCloseExpectedFor === currentWs;
+    if (expected) videoCloseExpectedFor = null;
+    var replaced = e && (e.code === 4000 || String(e.reason || '').indexOf('replaced') >= 0);
+    if (replaced) {
+      videoReconnectPaused = true;
+      setVideoStatus('disconnected', 'replaced by another viewer');
+      logEvent('[video] WS closed 4000 replaced - reconnect paused', 'log-video');
+    }
+    if (!expected) {
+      if (!replaced) setVideoStatus('disconnected');
+      if (!replaced) logEvent('[video] WS closed ' + (e && e.code ? e.code : ''), 'log-video');
+    }
+    if (videoWs === currentWs) videoWs = null;
+    if (!expected && !replaced && !videoReconnectPaused) {
+      videoReconnectTimer = setTimeout(connectVideo, 3000);
+    }
+  };
+}
+async function onVideoSignalMessage(e) {
+  var msg;
+  try {
+    msg = JSON.parse(e.data);
+  } catch (err) {
+    logEvent('[video] bad signalling message', 'log-error');
+    return;
+  }
+  if (msg.type === 'welcome') {
+    logEvent('[video] welcome ' + String(msg.connectionId || '').slice(0, 8), 'log-video');
+    return;
+  }
+  if (msg.type === 'offer') {
+    await handleVideoOffer(msg);
+    return;
+  }
+  if (msg.type === 'candidate' && videoPc) {
+    try {
+      await videoPc.addIceCandidate(new RTCIceCandidate(msg.data));
+    } catch (err2) {
+      logEvent('[video] ICE candidate failed: ' + err2.message, 'log-error');
+    }
+    return;
+  }
+  if (msg.type === 'error') {
+    setVideoStatus('failed', msg.message || 'signalling error');
+    logEvent('[video] error: ' + (msg.message || 'unknown'), 'log-error');
+  }
+}
+async function handleVideoOffer(msg) {
+  try {
+    unityConnectionId = msg.from || '';
+    closeVideoPeer();
+    var mySeq = ++videoPeerSeq;
+    setVideoStatus('offer', 'creating peer');
+    logEvent('[video] offer received', 'log-video');
+    videoPc = new RTCPeerConnection({
+      iceTransportPolicy: videoIceTransportPolicy,
+      iceServers: videoIceServers,
+    });
+    videoPc.ontrack = function(ev) {
+      if (mySeq !== videoPeerSeq) return;
+      var stream = (ev.streams && ev.streams[0]) ? ev.streams[0] : new MediaStream([ev.track]);
+      unityVideo.srcObject = stream;
+      unityVideo.muted = true;
+      unityVideo.play().then(function() {
+        if (mySeq !== videoPeerSeq) return;
+        setVideoStatus('playing');
+        logEvent('[video] VIDEO PLAYING', 'log-video');
+      }).catch(function(err) {
+        if (mySeq !== videoPeerSeq) return;
+        setVideoStatus('failed', err.message);
+        logEvent('[video] play failed: ' + err.message, 'log-error');
+      });
+    };
+    videoPc.onicecandidate = function(ev) {
+      if (mySeq !== videoPeerSeq) return;
+      if (ev.candidate && videoWs && videoWs.readyState === WebSocket.OPEN) {
+        videoWs.send(JSON.stringify({
+          from: unityConnectionId,
+          type: 'candidate',
+          data: {
+            candidate: ev.candidate.candidate,
+            sdpMLineIndex: ev.candidate.sdpMLineIndex,
+            sdpMid: ev.candidate.sdpMid,
+          },
+        }));
+      }
+    };
+    videoPc.oniceconnectionstatechange = function() {
+      if (mySeq !== videoPeerSeq) return;
+      logEvent('[video] ICE ' + videoPc.iceConnectionState, 'log-video');
+      if (videoPc.iceConnectionState === 'failed' || videoPc.iceConnectionState === 'disconnected') {
+        setVideoStatus('failed', 'ICE ' + videoPc.iceConnectionState);
+      }
+    };
+    videoPc.onconnectionstatechange = function() {
+      if (mySeq !== videoPeerSeq) return;
+      logEvent('[video] PC ' + videoPc.connectionState, 'log-video');
+      if (videoPc.connectionState === 'failed') setVideoStatus('failed', 'PC failed');
+      if (videoPc.connectionState === 'connected' && unityVideo.srcObject) setVideoStatus('playing');
+    };
+    await videoPc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: msg.data && msg.data.sdp }));
+    if (mySeq !== videoPeerSeq) return;
+    var answer = await videoPc.createAnswer();
+    await videoPc.setLocalDescription(answer);
+    if (mySeq !== videoPeerSeq) return;
+    if (videoWs && videoWs.readyState === WebSocket.OPEN) {
+      videoWs.send(JSON.stringify({ from: unityConnectionId, type: 'answer', data: { sdp: answer.sdp } }));
+      logEvent('[video] answer sent', 'log-video');
+    }
+  } catch (err) {
+    setVideoStatus('failed', err.message);
+    logEvent('[video] offer failed: ' + err.message, 'log-error');
+  }
+}
+function reconnectVideo() {
+  videoReconnectPaused = false;
+  clearTimeout(videoReconnectTimer);
+  if (videoWs) {
+    videoCloseExpectedFor = videoWs;
+    try { videoWs.close(); } catch (err) {}
+    videoWs = null;
+  }
+  closeVideoPeer();
+  setVideoStatus('connecting');
+  connectVideo();
+}
+function sendBind() {
+  if (!wsConnected) return;
+  sessionId = sessionInput.value.trim();
+  if (!sessionId) {
+    ws.send(JSON.stringify({ type: 'sensor.bind' }));
+    logEvent('bind -> auto session', 'log-system');
+    return;
+  }
+  ws.send(JSON.stringify({ type: 'sensor.bind', session_id: sessionId }));
+  logEvent('bind -> session: ' + (sessionId || '(empty)'), 'log-system');
+}
+function connect() {
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+  const url = buildWsUrl();
+  logEvent('connecting to ' + url, 'log-system');
+  setStatus('connecting');
+  ws = new WebSocket(url);
+  ws.onopen = function() {
+    setStatus('connected');
+    logEvent('WebSocket connected', 'log-system');
+    btnConnect.textContent = 'Disconnect';
+    clearTimeout(reconnectTimer);
+    sendBind();
+  };
+  ws.onclose = function() {
+    setStatus('disconnected');
+    btnConnect.textContent = 'Connect';
+    if (!reconnectPaused) {
+      logEvent('Connection lost, reconnecting in 5s...', 'log-error');
+      reconnectTimer = setTimeout(connect, 5000);
+    }
+  };
+  ws.onerror = function() {
+    logEvent('WebSocket error', 'log-error');
+  };
+  ws.onmessage = function(e) {
+    console.log('[ws]', e.data);
+    try {
+      var msg = JSON.parse(e.data);
+      if (msg.type === 'audio.received') {
+        voiceStatus.textContent = '已发送，数字人处理中';
+        lastAudioSubmit = Date.now();
+        setTimeout(function() {
+          if (Date.now() - lastAudioSubmit >= 1400) voiceStatus.textContent = '';
+        }, 1600);
+      } else if (msg.type === 'asr.result') {
+        voiceStatus.textContent = '识别：' + (msg.text || '');
+        setTimeout(function() { voiceStatus.textContent = ''; }, 3000);
+      } else if (msg.type === 'turn.start' && lastAudioSubmit) {
+        voiceStatus.textContent = '数字人回应中...';
+      } else if (msg.type === 'error') {
+        logEvent(msg.message || 'WebSocket error', 'log-error');
+        voiceStatus.textContent = '';
+      } else if (msg.type === 'sensor.bound') {
+        sessionId = msg.session_id || sessionId;
+        if (sessionId) {
+          sessionInput.value = sessionId;
+          localStorage.setItem('sc_session', sessionId);
+        }
+        demoState.unity = '已绑定';
+        demoState.avatar = 'Connected';
+        renderDemoState();
+        logEvent((msg.auto ? 'auto ' : '') + 'bound session ' + (sessionId || ''), 'log-system');
+      } else if (msg.type === 'sensor.waiting_session') {
+        demoState.unity = '等待Unity';
+        demoState.avatar = 'Waiting';
+        renderDemoState();
+        logEvent('waiting Unity session', 'log-system');
+      } else if (msg.type === 'sensor.ack') {
+        applyAck(msg);
+        applyLocalMetrics(msg.event || '', !!msg.accepted);
+        renderDemoState();
+        logEvent('[ack] ' + (msg.event || '?') + ' ' + (msg.accepted ? 'ok' : 'reject') + ' ' + (msg.latency_ms || 0) + 'ms', msg.accepted ? 'log-sent' : 'log-error');
+      }
+    } catch (err) {}
+  };
+}
+function disconnect() {
+  reconnectPaused = true;
+  clearTimeout(reconnectTimer);
+  if (ws) {
+    ws.onclose = function() {
+      setStatus('disconnected');
+      btnConnect.textContent = 'Connect';
+    };
+    ws.close();
+  }
+}
+btnConnect.addEventListener('click', function() {
+  if (wsConnected || (ws && ws.readyState === WebSocket.CONNECTING)) {
+    disconnect();
+  } else {
+    reconnectPaused = false;
+    connect();
+  }
+});
+sessionInput.addEventListener('change', function() {
+  if (wsConnected) sendBind();
+});
+function sendEvent(event, zone, value) {
+  var label = zone ? '[touch] ' + event : '[imu] ' + event;
+  if (wsConnected) {
+    var nextSessionId = sessionInput.value.trim();
+    if (!nextSessionId) {
+      var now = Date.now();
+      if (now - lastMissingSessionLog > 2000) {
+        lastMissingSessionLog = now;
+        sendBind();
+        logEvent(label + ' waiting session', 'log-system');
+      }
+      return;
+    }
+    if (nextSessionId !== sessionId) {
+      sessionId = nextSessionId;
+      ws.send(JSON.stringify({ type: 'sensor.bind', session_id: sessionId }));
+      logEvent('bind -> session: ' + sessionId, 'log-system');
+    }
+  }
+  var payload = {
+    type:         'sensor.event',
+    event:        event,
+    zone:         zone || null,
+    value:        value || {},
+    timestamp_ms: Date.now(),
+  };
+  if (sessionId) payload.session_id = sessionId;
+  if (wsConnected) {
+    ws.send(JSON.stringify(payload));
+    logEvent(label + ' -> sent', zone ? 'log-touch' : 'log-imu');
+    demoState.lastEvent = event;
+    demoState.avatar = 'Sending';
+    renderDemoState();
+  } else {
+    logEvent(label + ' (not connected)', 'log-system');
+  }
+}
+function setupVoiceInput() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    btnMic.style.display = 'none';
+    voiceStatus.textContent = '当前浏览器不支持录音';
+    logEvent('MediaRecorder/getUserMedia not supported', 'log-error');
+    return;
+  }
+  var host = window.location.hostname;
+  if (window.location.protocol !== 'https:' && host !== 'localhost' && host !== '127.0.0.1') {
+    voiceWarning.style.display = 'block';
+  }
+  btnMic.addEventListener('touchstart', startRecording, { passive: false });
+  btnMic.addEventListener('touchend', stopRecording, { passive: false });
+  btnMic.addEventListener('touchcancel', cancelRecording, { passive: false });
+  btnMic.addEventListener('mousedown', startRecording);
+  btnMic.addEventListener('mouseup', stopRecording);
+  btnMic.addEventListener('mouseleave', stopRecording);
+}
+function pickAudioMimeType() {
+  var types = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm', 'audio/ogg'];
+  for (var i = 0; i < types.length; i++) {
+    if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+  }
+  return '';
+}
+function getMicStream() {
+  if (micStream && micStream.getTracks().some(function(track) { return track.readyState === 'live'; })) {
+    return Promise.resolve(micStream);
+  }
+  return navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+}
+function startRecording(e) {
+  if (e) e.preventDefault();
+  if (recording) return;
+  if (!wsConnected) {
+    logEvent('voice (not connected)', 'log-system');
+    return;
+  }
+  sessionId = sessionInput.value.trim();
+  if (!sessionId) {
+    logEvent('voice requires session_id', 'log-error');
+    return;
+  }
+  getMicStream().then(function(stream) {
+    micStream = stream;
+    micChunks = [];
+    var mimeType = pickAudioMimeType();
+    mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = function(ev) {
+      if (ev.data && ev.data.size > 0) micChunks.push(ev.data);
+    };
+    mediaRecorder.onstop = submitRecording;
+    recording = true;
+    btnMic.classList.add('recording');
+    btnMic.textContent = '松开发送';
+    voiceStatus.textContent = '录音中...';
+    mediaRecorder.start();
+  }).catch(function() {
+    logEvent('请允许麦克风权限', 'log-error');
+    voiceStatus.textContent = '请允许麦克风权限';
+  });
+}
+function stopRecording(e) {
+  if (e) e.preventDefault();
+  if (!recording || !mediaRecorder) return;
+  recording = false;
+  btnMic.classList.remove('recording');
+  btnMic.textContent = '按住说话';
+  voiceStatus.textContent = '正在识别...';
+  mediaRecorder.stop();
+}
+function cancelRecording(e) {
+  if (e) e.preventDefault();
+  if (!recording || !mediaRecorder) return;
+  mediaRecorder.onstop = null;
+  recording = false;
+  btnMic.classList.remove('recording');
+  btnMic.textContent = '按住说话';
+  voiceStatus.textContent = '';
+  mediaRecorder.stop();
+}
+function submitRecording() {
+  if (!wsConnected || !ws) {
+    logEvent('[voice] audio (not connected)', 'log-system');
+    voiceStatus.textContent = '';
+    micChunks = [];
+    return;
+  }
+  var mimeType = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : 'audio/webm';
+  var blob = new Blob(micChunks, { type: mimeType });
+  micChunks = [];
+  // Real ASR backends may require WAV/PCM transcoding; MockASR accepts these bytes.
+  blob.arrayBuffer().then(function(buf) {
+    var bytes = new Uint8Array(buf);
+    var binary = '';
+    for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    ws.send(JSON.stringify({
+      type: 'sensor.audio',
+      session_id: sessionId,
+      base64: btoa(binary),
+      sample_rate: 16000,
+    }));
+    logEvent('[voice] audio -> sent', 'log-sent');
+  }).catch(function(err) {
+    logEvent('audio encode failed: ' + err.message, 'log-error');
+    voiceStatus.textContent = '';
+  });
+}
+function setupSensorPermission() {
+  renderSensorDebug();
+  btnPerm.style.display = '';
+  btnPerm.addEventListener('click', requestSensorAccess);
+  if (!window.isSecureContext) {
+    permStatus.textContent = 'insecure';
+    logEvent('IMU blocked: insecure origin. Edge flag may not be active for this exact origin.', 'log-error');
+  } else if (typeof DeviceMotionEvent === 'undefined' && typeof DeviceOrientationEvent === 'undefined') {
+    permStatus.textContent = 'N/A';
+    logEvent('DeviceMotion/DeviceOrientation not supported', 'log-error');
+  } else {
+    permStatus.textContent = 'tap auth';
+    requestSensorAccess();
+  }
+}
+function requestSensorAccess() {
+  renderSensorDebug();
+  if (!window.isSecureContext) {
+    permStatus.textContent = 'insecure';
+    logEvent('IMU blocked: context is still insecure for ' + window.location.origin, 'log-error');
+    return;
+  }
+
+  var motionPromise = Promise.resolve('granted');
+  var orientationPromise = Promise.resolve('granted');
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    motionPromise = DeviceMotionEvent.requestPermission();
+  }
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    orientationPromise = DeviceOrientationEvent.requestPermission();
+  }
+
+  permStatus.textContent = 'requesting';
+  Promise.all([motionPromise, orientationPromise]).then(function(results) {
+    if (results.indexOf('denied') >= 0) {
+      permStatus.textContent = 'denied';
+      logEvent('Sensor permission denied', 'log-error');
+      return;
+    }
+    startMotionListener();
+    startOrientationListener();
+    permStatus.textContent = 'listening';
+    logEvent('IMU listeners started', 'log-system');
+    clearTimeout(sensorNoEventTimer);
+    sensorNoEventTimer = setTimeout(function() {
+      if (motionEventCount === 0 && orientationEventCount === 0) {
+        permStatus.textContent = 'no events';
+        logEvent('IMU listener active but no motion/orientation events received', 'log-error');
+      }
+      renderSensorDebug();
+    }, 2000);
+  }).catch(function(err) {
+    permStatus.textContent = 'error';
+    logEvent('Sensor permission request failed: ' + (err && err.message ? err.message : err), 'log-error');
+  });
+}
+function startMotionListener() {
+  if (motionStarted) return;
+  if (typeof DeviceMotionEvent === 'undefined') {
+    logEvent('DeviceMotion not supported', 'log-error');
+    return;
+  }
+  motionStarted = true;
+  window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+  // Walking sample every 200ms
+  imu.walkTimer = setInterval(sampleWalk, 200);
+}
+function onDeviceMotion(e) {
+  motionEventCount++;
+  var acc = e.accelerationIncludingGravity || e.acceleration || {};
+  imu.ax = acc.x || 0;
+  imu.ay = acc.y || 0;
+  imu.az = acc.z || 0;
+  var mag    = Math.sqrt(imu.ax * imu.ax + imu.ay * imu.ay + imu.az * imu.az);
+  var netMag = Math.abs(mag - 9.8);
+  if (netMag > THRESH.SHAKE) {
+    var now = Date.now();
+    if (now - imu.lastShake > THRESH.DEBOUNCE.shake) {
+      imu.lastShake = now;
+      sendEvent('shake', null, {
+        accel_magnitude: parseFloat(mag.toFixed(2)),
+        net_magnitude:   parseFloat(netMag.toFixed(2)),
+        confidence:      parseFloat(Math.min(1, netMag / THRESH.SHAKE).toFixed(2)),
+      });
+    }
+  }
+  if (debugPanel.classList.contains('visible')) {
+    dbgAx.textContent  = imu.ax.toFixed(2);
+    dbgAy.textContent  = imu.ay.toFixed(2);
+    dbgAz.textContent  = imu.az.toFixed(2);
+    dbgMag.textContent = mag.toFixed(2);
+    renderSensorDebug();
+  }
+}
+// Walking detection: sample z-accel every 200ms, check oscillation amplitude
+function sampleWalk() {
+  var z = imu.az;
+  imu.walkBuf.push(z);
+  if (imu.walkBuf.length > THRESH.WALK_SAMPLES + 2) {
+    imu.walkBuf.shift();
+  }
+  if (debugPanel.classList.contains('visible')) {
+    dbgWalk.textContent = imu.walkBuf.map(function(v) { return v.toFixed(1); }).join(',');
+  }
+  if (imu.walkBuf.length < THRESH.WALK_SAMPLES) return;
+  var walkMatch = true;
+  for (var i = 1; i < imu.walkBuf.length; i++) {
+    var delta = Math.abs(imu.walkBuf[i] - imu.walkBuf[i - 1]);
+    if (delta < THRESH.WALK_MIN || delta > THRESH.WALK_MAX) {
+      walkMatch = false;
+      break;
+    }
+  }
+  if (walkMatch) {
+    var now2 = Date.now();
+    if (now2 - imu.lastWalking > THRESH.DEBOUNCE.walking) {
+      imu.lastWalking = now2;
+      sendEvent('walking', null, {
+        z_samples: imu.walkBuf.slice(-THRESH.WALK_SAMPLES).map(function(v) {
+          return parseFloat(v.toFixed(2));
+        }),
+        confidence: 0.8,
+      });
+    }
+  }
+}
+function startOrientationListener() {
+  if (orientationStarted) return;
+  if (typeof DeviceOrientationEvent === 'undefined') {
+    logEvent('DeviceOrientation not supported', 'log-error');
+    return;
+  }
+  orientationStarted = true;
+  window.addEventListener('deviceorientation', onDeviceOrientation, { passive: true });
+}
+function onDeviceOrientation(e) {
+  orientationEventCount++;
+  imu.prevBeta = imu.beta;
+  imu.alpha    = e.alpha || 0;
+  imu.beta     = e.beta  || 0;
+  imu.gamma    = e.gamma || 0;
+  var absBeta     = Math.abs(imu.beta);
+  var absPrevBeta = Math.abs(imu.prevBeta);
+  var now         = Date.now();
+  if (absBeta > THRESH.PICKUP_NOW && absPrevBeta < THRESH.PICKUP_PREV) {
+    if (now - imu.lastPickup > THRESH.DEBOUNCE.pickup) {
+      imu.lastPickup = now;
+      sendEvent('pickup', null, {
+        beta:       parseFloat(imu.beta.toFixed(1)),
+        gamma:      parseFloat(imu.gamma.toFixed(1)),
+        confidence: parseFloat(Math.min(1, (absBeta - THRESH.PICKUP_NOW) / 30).toFixed(2)),
+      });
+    }
+  }
+  if (absBeta < THRESH.PUTDOWN_NOW && absPrevBeta > THRESH.PUTDOWN_PREV) {
+    if (now - imu.lastPutdown > THRESH.DEBOUNCE.putdown) {
+      imu.lastPutdown = now;
+      sendEvent('putdown', null, {
+        beta:       parseFloat(imu.beta.toFixed(1)),
+        gamma:      parseFloat(imu.gamma.toFixed(1)),
+        confidence: 0.9,
+      });
+    }
+  }
+  // beta > NEAR_BETA (70) AND |gamma| < NEAR_GAMMA (30)
+  if (imu.beta > THRESH.NEAR_BETA && Math.abs(imu.gamma) < THRESH.NEAR_GAMMA) {
+    if (now - imu.lastNearEar > THRESH.DEBOUNCE.near_ear) {
+      imu.lastNearEar = now;
+      sendEvent('near_ear', null, {
+        beta:       parseFloat(imu.beta.toFixed(1)),
+        gamma:      parseFloat(imu.gamma.toFixed(1)),
+        confidence: 0.85,
+      });
+    }
+  }
+  maybeSendTilt(now);
+  if (debugPanel.classList.contains('visible')) {
+    dbgAlpha.textContent = imu.alpha.toFixed(1);
+    dbgBeta.textContent  = imu.beta.toFixed(1);
+    dbgGamma.textContent = imu.gamma.toFixed(1);
+    dbgState.textContent =
+      'pu:' + (now - imu.lastPickup  < 600 ? 'Y' : 'n') +
+      ' pd:' + (now - imu.lastPutdown < 600 ? 'Y' : 'n') +
+      ' ne:' + (now - imu.lastNearEar < 2100 ? 'Y' : 'n');
+    renderSensorDebug();
+  }
+  renderDemoState();
+}
+function maybeSendTilt(now) {
+  var betaDelta = Math.abs(imu.beta - imu.lastTiltBeta);
+  var gammaDelta = Math.abs(imu.gamma - imu.lastTiltGamma);
+  if (now - imu.lastTilt < THRESH.DEBOUNCE.tilt) return;
+  if (betaDelta < THRESH.TILT_DELTA && gammaDelta < THRESH.TILT_DELTA) return;
+
+  imu.lastTilt = now;
+  imu.lastTiltBeta = imu.beta;
+  imu.lastTiltGamma = imu.gamma;
+  sendEvent('tilt', null, {
+    alpha: parseFloat(imu.alpha.toFixed(1)),
+    beta: parseFloat(imu.beta.toFixed(1)),
+    gamma: parseFloat(imu.gamma.toFixed(1)),
+    confidence: 0.9,
+  });
+}
+function setupAmbientLight() {
+  if (typeof AmbientLightSensor !== 'undefined') {
+    try {
+      var sensor = new AmbientLightSensor({ frequency: 0.5 });
+      sensor.addEventListener('reading', function() {
+        if (sensor.illuminance < THRESH.AMBIENT_LUX) {
+          var now = Date.now();
+          if (now - imu.lastDark > THRESH.DEBOUNCE.dark) {
+            imu.lastDark = now;
+            sendEvent('dark', null, {
+              lux:        parseFloat(sensor.illuminance.toFixed(1)),
+              source:     'ambient_sensor',
+              confidence: 0.9,
+            });
+          }
+        }
+      });
+      sensor.start();
+      logEvent('AmbientLightSensor started', 'log-system');
+    } catch (err) {
+      // Not available, fall through to visibility fallback
+    }
+  }
+  // Fallback: page going to background counts as "dark"
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      var now = Date.now();
+      if (now - imu.lastDark > THRESH.DEBOUNCE.dark) {
+        imu.lastDark = now;
+        sendEvent('dark', null, { source: 'visibility', confidence: 0.5 });
+      }
+    }
+  });
+}
+(function setupTouchZones() {
+  var zones = [
+    document.getElementById('zone-head'),
+    document.getElementById('zone-cheek'),
+    document.getElementById('zone-hand'),
+  ];
+  zones.forEach(function(zone) {
+    var touchStart = 0;
+    var startX = 0;
+    var startY = 0;
+    var holdTimer  = null;
+    var held       = false;
+    var flashClass = 'flash-' + zone.dataset.zone;
+    zone.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      touchStart = Date.now();
+      held       = false;
+      // Ripple
+      var touch  = e.changedTouches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
+      var rect   = zone.getBoundingClientRect();
+      var ripple = document.createElement('div');
+      ripple.className = 'ripple';
+      ripple.style.left = (touch.clientX - rect.left - 30) + 'px';
+      ripple.style.top  = (touch.clientY - rect.top  - 30) + 'px';
+      zone.appendChild(ripple);
+      setTimeout(function() { ripple.remove(); }, 450);
+      zone.classList.add(flashClass);
+      // Hold timer
+      holdTimer = setTimeout(function() {
+        held = true;
+        var t2   = e.changedTouches[0];
+        var r2   = zone.getBoundingClientRect();
+        sendEvent('hold_' + zone.dataset.zone, zone.dataset.zone, {
+          touch_x: parseFloat(((t2.clientX - r2.left) / r2.width).toFixed(3)),
+          touch_y: parseFloat(((t2.clientY - r2.top)  / r2.height).toFixed(3)),
+        });
+        zone.classList.remove(flashClass);
+      }, 800);
+    }, { passive: false });
+    zone.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      clearTimeout(holdTimer);
+      zone.classList.remove(flashClass);
+      if (held) return;
+
+      var duration = Date.now() - touchStart;
+      var touch = e.changedTouches[0];
+      var dx = touch.clientX - startX;
+      var dy = touch.clientY - startY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 48) {
+        sendEvent('swipe', zone.dataset.zone, {
+          dx: parseFloat(dx.toFixed(1)),
+          dy: parseFloat(dy.toFixed(1)),
+          duration_ms: duration,
+          direction: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'),
+          confidence: 1.0,
+        });
+      } else if (duration < 300) {
+        var touch = e.changedTouches[0];
+        var rect  = zone.getBoundingClientRect();
+        sendEvent(zone.dataset.event, zone.dataset.zone, {
+          touch_x: parseFloat(((touch.clientX - rect.left) / rect.width).toFixed(3)),
+          touch_y: parseFloat(((touch.clientY - rect.top)  / rect.height).toFixed(3)),
+        });
+      }
+    }, { passive: false });
+    zone.addEventListener('touchcancel', function() {
+      clearTimeout(holdTimer);
+      zone.classList.remove(flashClass);
+    });
+  });
+}());
+function toggleDebug(on) {
+  if (on) {
+    debugPanel.classList.add('visible');
+  } else {
+    debugPanel.classList.remove('visible');
+  }
+}
+debugToggle.addEventListener('change', function() {
+  toggleDebug(debugToggle.checked);
+});
+btnDebugSmall.addEventListener('click', function() {
+  debugToggle.checked = !debugToggle.checked;
+  toggleDebug(debugToggle.checked);
+});
+(function setupMouseZones() {
+  var zones = [
+    document.getElementById('zone-head'),
+    document.getElementById('zone-cheek'),
+    document.getElementById('zone-hand'),
+  ];
+  zones.forEach(function(zone) {
+    var mouseStart = 0;
+    var startX = 0;
+    var startY = 0;
+    var holdTimer  = null;
+    var held       = false;
+    var flashClass = 'flash-' + zone.dataset.zone;
+    zone.addEventListener('mousedown', function(e) {
+      mouseStart = Date.now();
+      startX = e.clientX;
+      startY = e.clientY;
+      held = false;
+      zone.classList.add(flashClass);
+      holdTimer = setTimeout(function() {
+        held = true;
+        sendEvent('hold_' + zone.dataset.zone, zone.dataset.zone, {
+          touch_x: 0.5,
+          touch_y: 0.5,
+          simulated: true,
+        });
+        zone.classList.remove(flashClass);
+      }, 800);
+    });
+    zone.addEventListener('mouseup', function(e) {
+      clearTimeout(holdTimer);
+      zone.classList.remove(flashClass);
+      if (held) return;
+
+      var duration = Date.now() - mouseStart;
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 48) {
+        sendEvent('swipe', zone.dataset.zone, {
+          dx: parseFloat(dx.toFixed(1)),
+          dy: parseFloat(dy.toFixed(1)),
+          duration_ms: duration,
+          direction: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'),
+          simulated: true,
+          confidence: 1.0,
+        });
+      } else if (duration < 300) {
+        sendEvent(zone.dataset.event, zone.dataset.zone, {
+          touch_x: 0.5,
+          touch_y: 0.5,
+          simulated: true,
+        });
+      }
+    });
+    zone.addEventListener('mouseleave', function() {
+      clearTimeout(holdTimer);
+      zone.classList.remove(flashClass);
+    });
+  });
+}());
+(function setupSimButtons() {
+  document.querySelectorAll('.btn-sim, .btn-action').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var event = btn.dataset.event;
+      sendEvent(event, btn.dataset.zone || null, {
+        simulated: true,
+        confidence: 1.0,
+      });
+    });
+  });
+}());
+function setupBodyZoneDebugButtons() {
+  if (!bodyZoneRow) return;
+  BODY_TOUCH_ZONES.forEach(function(zone) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sim btn-zone';
+    btn.textContent = BODY_ZONE_LABELS[zone] || zone;
+    btn.dataset.zone = zone;
+    btn.addEventListener('click', function() {
+      sendEvent('tap_' + zone, zone, {
+        zone: zone,
+        simulated: true,
+        source: 'debug_zone_button',
+        confidence: 1.0,
+      });
+    });
+    btn.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      sendEvent('hold_' + zone, zone, {
+        zone: zone,
+        simulated: true,
+        source: 'debug_zone_button',
+        confidence: 1.0,
+      });
+    });
+    var holdTimer = null;
+    var held = false;
+    btn.addEventListener('touchstart', function(e) {
+      held = false;
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(function() {
+        held = true;
+        sendEvent('hold_' + zone, zone, {
+          zone: zone,
+          simulated: true,
+          source: 'debug_zone_button',
+          confidence: 1.0,
+        });
+      }, 700);
+    }, { passive: true });
+    btn.addEventListener('touchend', function(e) {
+      clearTimeout(holdTimer);
+      if (held) e.preventDefault();
+    }, { passive: false });
+    bodyZoneRow.appendChild(btn);
+  });
+}
+setupBodyZoneDebugButtons();
+btnVideo.addEventListener('click', reconnectVideo);
+(function init() {
+  document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+  // Persist connection settings in localStorage
+  var savedIp   = localStorage.getItem('sc_ip');
+  var savedPort = localStorage.getItem('sc_port');
+  var savedSignalPort = localStorage.getItem('sc_signal_port');
+  var savedSess = localStorage.getItem('sc_session');
+  if (savedIp)   ipInput.value      = savedIp;
+  if (savedPort) portInput.value    = savedPort;
+  if (savedSignalPort) signalingPortInput.value = savedSignalPort;
+  if (savedSess) sessionInput.value = savedSess;
+  ipInput.addEventListener('change',      function() {
+    localStorage.setItem('sc_ip', ipInput.value);
+    reconnectVideo();
+  });
+  portInput.addEventListener('change',    function() { localStorage.setItem('sc_port',    portInput.value); });
+  signalingPortInput.addEventListener('change', function() {
+    localStorage.setItem('sc_signal_port', signalingPortInput.value);
+    reconnectVideo();
+  });
+  sessionInput.addEventListener('change', function() { localStorage.setItem('sc_session', sessionInput.value); });
+  setupSensorPermission();
+  setupAmbientLight();
+  setupVoiceInput();
+  setVideoStatus('disconnected');
+  connectVideo();
+  logEvent('Sensor Controller v2.0 ready', 'log-system');
+}());
+</script>
+</body>
+</html>

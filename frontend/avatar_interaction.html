@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>HerUnity Avatar</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      color: #e8f0fe;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      user-select: none;
+    }
+    #stage {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      background: #000;
+    }
+    #unity-video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
+    #debug-layer {
+      display: none;
+      position: fixed;
+      inset: env(safe-area-inset-top) 0 auto 0;
+      z-index: 10;
+      max-height: 45dvh;
+      padding: 10px 12px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.68);
+      color: #9ee7ff;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      pointer-events: auto;
+    }
+    #debug-layer.visible { display: block; }
+    #debug-grid {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 3px 10px;
+      align-items: baseline;
+    }
+    .debug-label { color: rgba(232, 240, 254, 0.68); }
+    #debug-log {
+      margin-top: 8px;
+      max-height: 120px;
+      overflow: hidden;
+      color: rgba(232, 240, 254, 0.82);
+      white-space: pre-wrap;
+    }
+    #anchor-layer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9;
+    }
+    #anchor-layer.visible { display: block; }
+    .anchor-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border: 2px solid #7dffa7;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+<main id="stage">
+  <video id="unity-video" autoplay playsinline muted></video>
+</main>
+<div id="anchor-layer" aria-hidden="true"></div>
+<aside id="debug-layer" aria-hidden="true">
+  <div id="debug-grid">
+    <span class="debug-label">sensor</span><span id="dbg-sensor">disconnected</span>
+    <span class="debug-label">video</span><span id="dbg-video">disconnected</span>
+    <span class="debug-label">session</span><span id="dbg-session">-</span>
+    <span class="debug-label">last</span><span id="dbg-last">-</span>
+    <span class="debug-label">context</span><span id="dbg-context">-</span>
+    <span class="debug-label">imu state</span><span id="dbg-imu-state">idle</span>
+    <span class="debug-label">imu</span><span id="dbg-imu">0 / 0 / 0</span>
+    <span class="debug-label">anchors</span><span id="dbg-anchors">fallback</span>
+  </div>
+  <div id="debug-log"></div>
+</aside>
+<script>
+"use strict";
+
+var video = document.getElementById("unity-video");
+var stage = document.getElementById("stage");
+var debugLayer = document.getElementById("debug-layer");
+var anchorLayer = document.getElementById("anchor-layer");
+var dbgSensor = document.getElementById("dbg-sensor");
+var dbgVideo = document.getElementById("dbg-video");
+var dbgSession = document.getElementById("dbg-session");
+var dbgLast = document.getElementById("dbg-last");
+var dbgContext = document.getElementById("dbg-context");
+var dbgImuState = document.getElementById("dbg-imu-state");
+var dbgImu = document.getElementById("dbg-imu");
+var dbgAnchors = document.getElementById("dbg-anchors");
+var debugLog = document.getElementById("debug-log");
+
+var sensorWs = null;
+var sensorReconnectTimer = null;
+var videoWs = null;
+var videoPc = null;
+var videoPeerSeq = 0;
+var videoReconnectTimer = null;
+var unityConnectionId = "";
+var sensorsStarted = false;
+var permissionRequested = false;
+var permissionRequestInFlight = false;
+var imuStatus = "idle";
+var motionEventCount = 0;
+var orientationEventCount = 0;
+var imuNoEventTimer = null;
+var sessionId = localStorage.getItem("sc_session") || "";
+var lastMissingSessionLog = 0;
+var debugVisible = new URLSearchParams(location.search).get("debug") === "1";
+
+var imu = {
+  alpha: 0,
+  beta: 0,
+  gamma: 0,
+  prevBeta: 0,
+  ax: 0,
+  ay: 0,
+  az: 0,
+  lastPickup: 0,
+  lastPutdown: 0,
+  lastShake: 0,
+  lastWalking: 0,
+  lastNearEar: 0,
+  lastTilt: 0,
+  lastTiltBeta: 0,
+  lastTiltGamma: 0,
+  walkBuf: []
+};
+
+var thresholds = {
+  pickupNow: 60,
+  pickupPrev: 30,
+  putdownNow: 20,
+  putdownPrev: 60,
+  shake: 25,
+  walkMin: 1.0,
+  walkMax: 5.0,
+  walkSamples: 4,
+  nearBeta: 70,
+  nearGamma: 30,
+  debounce: {
+    pickup: 500,
+    putdown: 500,
+    shake: 350,
+    walking: 3000,
+    nearEar: 2000,
+    tilt: 110
+  },
+  tiltDelta: 3.5
+};
+
+var anchors = {};
+var anchorsUpdatedAt = 0;
+var holdTimer = null;
+var activeTouch = null;
+var threeFingerTimer = null;
+
+function configHost() {
+  return localStorage.getItem("sc_ip") || location.hostname || "127.0.0.1";
+}
+
+function sensorUrl() {
+  var port = localStorage.getItem("sc_port") || "8100";
+  return (location.protocol === "https:" ? "wss" : "ws") + "://" + configHost() + ":" + port + "/ws/sensor";
+}
+
+function videoUrl() {
+  var port = localStorage.getItem("sc_signal_port") || "8080";
+  return (location.protocol === "https:" ? "wss" : "ws") + "://" + configHost() + ":" + port + "/?role=viewer&replace=1";
+}
+
+function setDebugVisible(value) {
+  debugVisible = value;
+  debugLayer.classList.toggle("visible", value);
+  anchorLayer.classList.toggle("visible", value);
+  debugLayer.setAttribute("aria-hidden", value ? "false" : "true");
+  renderDebug();
+}
+
+function log(message) {
+  if (!debugVisible) return;
+  var line = "[" + new Date().toTimeString().slice(0, 8) + "] " + message;
+  debugLog.textContent = (line + "\n" + debugLog.textContent).split("\n").slice(0, 8).join("\n");
+}
+
+function renderDebug() {
+  dbgSensor.textContent = sensorWs && sensorWs.readyState === WebSocket.OPEN ? "connected" : "disconnected";
+  dbgVideo.textContent = video.srcObject ? "playing" : (videoWs ? "connecting" : "disconnected");
+  dbgSession.textContent = sessionId || "-";
+  dbgContext.textContent = (window.isSecureContext ? "secure" : "insecure") + " " + location.protocol;
+  dbgImuState.textContent = imuStatus + " m:" + motionEventCount + " o:" + orientationEventCount;
+  dbgImu.textContent = imu.alpha.toFixed(0) + " / " + imu.beta.toFixed(0) + " / " + imu.gamma.toFixed(0);
+  dbgAnchors.textContent = anchorsAreFresh() ? "live" : "fallback";
+  renderAnchorDots();
+}
+
+function setLastDebug(value) {
+  dbgLast.textContent = value || "-";
+}
+
+function connectSensor() {
+  if (sensorWs && (sensorWs.readyState === WebSocket.OPEN || sensorWs.readyState === WebSocket.CONNECTING)) return;
+
+  sensorWs = new WebSocket(sensorUrl());
+  sensorWs.onopen = function() {
+    clearTimeout(sensorReconnectTimer);
+    bindSession();
+    renderDebug();
+    log("sensor open");
+  };
+  sensorWs.onmessage = function(ev) {
+    var msg;
+    try {
+      msg = JSON.parse(ev.data);
+    } catch (err) {
+      return;
+    }
+    if (msg.type === "sensor.bound") {
+      sessionId = msg.session_id || sessionId;
+      renderDebug();
+      log("bound " + sessionId);
+    } else if (msg.type === "sensor.ack") {
+      setLastDebug((msg.event || "?") + " " + (msg.accepted ? "ok" : "reject") + " " + (msg.latency_ms || 0) + "ms");
+      renderDebug();
+    } else if (msg.type === "avatar.anchors") {
+      applyAnchors(msg);
+    } else if (msg.type === "error") {
+      setLastDebug(msg.message || "error");
+      log("error " + (msg.message || ""));
+    }
+  };
+  sensorWs.onerror = function() {
+    log("sensor error");
+  };
+  sensorWs.onclose = function() {
+    renderDebug();
+    sensorReconnectTimer = setTimeout(connectSensor, 2500);
+  };
+}
+
+function bindSession() {
+  sessionId = localStorage.getItem("sc_session") || sessionId;
+  if (!sessionId || !sensorWs || sensorWs.readyState !== WebSocket.OPEN) return;
+  sensorWs.send(JSON.stringify({ type: "sensor.bind", session_id: sessionId }));
+}
+
+function sendEvent(event, zone, value) {
+  sessionId = localStorage.getItem("sc_session") || sessionId;
+  if (!sessionId) {
+    var now = Date.now();
+    if (now - lastMissingSessionLog > 2000) {
+      lastMissingSessionLog = now;
+      setLastDebug("missing session");
+      log("missing session");
+    }
+    return;
+  }
+  if (!sensorWs || sensorWs.readyState !== WebSocket.OPEN) {
+    setLastDebug("offline " + event);
+    return;
+  }
+  sensorWs.send(JSON.stringify({
+    type: "sensor.event",
+    session_id: sessionId,
+    event: event,
+    zone: zone || null,
+    value: value || {},
+    timestamp_ms: Date.now()
+  }));
+  setLastDebug("sent " + event);
+}
+
+function closeVideoPeer() {
+  videoPeerSeq++;
+  if (videoPc) {
+    try {
+      videoPc.ontrack = null;
+      videoPc.onicecandidate = null;
+      videoPc.oniceconnectionstatechange = null;
+      videoPc.onconnectionstatechange = null;
+      videoPc.close();
+    } catch (err) {}
+  }
+  videoPc = null;
+  if (video.srcObject) {
+    try {
+      video.srcObject.getTracks().forEach(function(track) { track.stop(); });
+    } catch (err2) {}
+  }
+  video.srcObject = null;
+}
+
+function connectVideo() {
+  if (videoWs && (videoWs.readyState === WebSocket.OPEN || videoWs.readyState === WebSocket.CONNECTING)) return;
+  if (typeof RTCPeerConnection === "undefined") {
+    log("WebRTC unsupported");
+    return;
+  }
+
+  videoWs = new WebSocket(videoUrl());
+  videoWs.onopen = function() {
+    clearTimeout(videoReconnectTimer);
+    renderDebug();
+    log("video ws open");
+  };
+  videoWs.onmessage = onVideoSignalMessage;
+  videoWs.onerror = function() {
+    log("video ws error");
+  };
+  videoWs.onclose = function(ev) {
+    closeVideoPeer();
+    if (ev && (ev.code === 4000 || String(ev.reason || "").indexOf("replaced") >= 0)) {
+      videoWs = null;
+      renderDebug();
+      return;
+    }
+    videoWs = null;
+    renderDebug();
+    videoReconnectTimer = setTimeout(connectVideo, 3000);
+  };
+}
+
+async function onVideoSignalMessage(ev) {
+  var msg;
+  try {
+    msg = JSON.parse(ev.data);
+  } catch (err) {
+    return;
+  }
+  if (msg.type === "offer") {
+    await handleVideoOffer(msg);
+  } else if (msg.type === "candidate" && videoPc) {
+    try {
+      await videoPc.addIceCandidate(new RTCIceCandidate(msg.data));
+    } catch (err2) {
+      log("candidate failed " + err2.message);
+    }
+  } else if (msg.type === "error") {
+    log("video error " + (msg.message || ""));
+  }
+}
+
+async function handleVideoOffer(msg) {
+  try {
+    unityConnectionId = msg.from || "";
+    closeVideoPeer();
+    var mySeq = ++videoPeerSeq;
+    videoPc = new RTCPeerConnection({
+      iceTransportPolicy: localStorage.getItem("sc_ice_policy") || "all",
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+    videoPc.ontrack = function(trackEvent) {
+      if (mySeq !== videoPeerSeq) return;
+      var stream = trackEvent.streams && trackEvent.streams[0] ? trackEvent.streams[0] : new MediaStream([trackEvent.track]);
+      video.srcObject = stream;
+      video.muted = true;
+      video.play().then(renderDebug).catch(function(err) {
+        log("play failed " + err.message);
+      });
+    };
+    videoPc.onicecandidate = function(candidateEvent) {
+      if (mySeq !== videoPeerSeq) return;
+      if (!candidateEvent.candidate || !videoWs || videoWs.readyState !== WebSocket.OPEN) return;
+      videoWs.send(JSON.stringify({
+        from: unityConnectionId,
+        type: "candidate",
+        data: {
+          candidate: candidateEvent.candidate.candidate,
+          sdpMLineIndex: candidateEvent.candidate.sdpMLineIndex,
+          sdpMid: candidateEvent.candidate.sdpMid
+        }
+      }));
+    };
+    await videoPc.setRemoteDescription(new RTCSessionDescription({ type: "offer", sdp: msg.data && msg.data.sdp }));
+    if (mySeq !== videoPeerSeq) return;
+    var answer = await videoPc.createAnswer();
+    await videoPc.setLocalDescription(answer);
+    if (videoWs && videoWs.readyState === WebSocket.OPEN) {
+      videoWs.send(JSON.stringify({ from: unityConnectionId, type: "answer", data: { sdp: answer.sdp } }));
+    }
+    renderDebug();
+  } catch (err) {
+    log("offer failed " + err.message);
+  }
+}
+
+function applyAnchors(msg) {
+  var next = {};
+  var raw = msg.anchors && typeof msg.anchors === "object" ? msg.anchors : {};
+  Object.keys(raw).forEach(function(key) {
+    var item = raw[key] || {};
+    next[key] = {
+      x: clamp01(Number(item.x)),
+      y: clamp01(Number(item.y)),
+      r: Math.max(0.01, Math.min(0.35, Number(item.r) || 0.06)),
+      visible: item.visible !== false
+    };
+  });
+  anchors = next;
+  anchorsUpdatedAt = Date.now();
+  renderDebug();
+}
+
+function anchorsAreFresh() {
+  return Date.now() - anchorsUpdatedAt <= 500 && Object.keys(anchors).length > 0;
+}
+
+function fallbackAnchors() {
+  return {
+    head: { x: 0.5, y: 0.23, r: 0.14, visible: true },
+    cheek: { x: 0.5, y: 0.37, r: 0.16, visible: true },
+    left_hand: { x: 0.28, y: 0.67, r: 0.16, visible: true },
+    right_hand: { x: 0.72, y: 0.67, r: 0.16, visible: true },
+    body: { x: 0.5, y: 0.62, r: 0.28, visible: true }
+  };
+}
+
+function currentAnchors() {
+  return anchorsAreFresh() ? anchors : fallbackAnchors();
+}
+
+function hitTest(point) {
+  var list = currentAnchors();
+  var candidates = [
+    ["head", "head"],
+    ["cheek", "cheek"],
+    ["face", "cheek"],
+    ["left_cheek", "cheek"],
+    ["right_cheek", "cheek"],
+    ["left_hand", "hand"],
+    ["right_hand", "hand"],
+    ["hand", "hand"],
+    ["body", "body"]
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    var key = candidates[i][0];
+    var zone = candidates[i][1];
+    var anchor = list[key];
+    if (!anchor || anchor.visible === false) continue;
+    var dx = point.x - anchor.x;
+    var dy = point.y - anchor.y;
+    if (Math.sqrt(dx * dx + dy * dy) <= anchor.r) {
+      return zone;
+    }
+  }
+  return "body";
+}
+
+function zoneTapEvent(zone) {
+  if (zone === "head") return "tap_head";
+  if (zone === "cheek") return "tap_cheek";
+  if (zone === "hand") return "tap_hand";
+  return "tap";
+}
+
+function zoneHoldEvent(zone) {
+  if (zone === "head") return "hold_head";
+  if (zone === "cheek") return "hold_cheek";
+  if (zone === "hand") return "hold_hand";
+  return "hold_hand";
+}
+
+function videoPointFromClient(clientX, clientY) {
+  var rect = video.getBoundingClientRect();
+  var videoAspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+  var rectAspect = rect.width / Math.max(1, rect.height);
+  var contentW = rect.width;
+  var contentH = rect.height;
+  var offsetX = 0;
+  var offsetY = 0;
+  if (rectAspect > videoAspect) {
+    contentW = rect.height * videoAspect;
+    offsetX = (rect.width - contentW) / 2;
+  } else {
+    contentH = rect.width / videoAspect;
+    offsetY = (rect.height - contentH) / 2;
+  }
+  return {
+    x: clamp01((clientX - rect.left - offsetX) / Math.max(1, contentW)),
+    y: clamp01((clientY - rect.top - offsetY) / Math.max(1, contentH))
+  };
+}
+
+function pointValue(point, extra) {
+  var value = {
+    touch_x: Number(point.x.toFixed(3)),
+    touch_y: Number(point.y.toFixed(3)),
+    anchors_live: anchorsAreFresh()
+  };
+  Object.keys(extra || {}).forEach(function(key) {
+    value[key] = extra[key];
+  });
+  return value;
+}
+
+function onTouchStart(ev) {
+  ev.preventDefault();
+  requestSensors();
+  if (ev.touches && ev.touches.length >= 3) {
+    clearTimeout(threeFingerTimer);
+    threeFingerTimer = setTimeout(function() {
+      setDebugVisible(!debugVisible);
+    }, 700);
+    return;
+  }
+  clearTimeout(holdTimer);
+  var touch = ev.changedTouches && ev.changedTouches[0];
+  if (!touch) return;
+  var point = videoPointFromClient(touch.clientX, touch.clientY);
+  var zone = hitTest(point);
+  activeTouch = {
+    x: touch.clientX,
+    y: touch.clientY,
+    startedAt: Date.now(),
+    point: point,
+    zone: zone,
+    held: false
+  };
+  holdTimer = setTimeout(function() {
+    if (!activeTouch) return;
+    activeTouch.held = true;
+    sendEvent(zoneHoldEvent(activeTouch.zone), activeTouch.zone, pointValue(activeTouch.point, { confidence: 1.0 }));
+  }, 800);
+}
+
+function onTouchEnd(ev) {
+  ev.preventDefault();
+  clearTimeout(threeFingerTimer);
+  clearTimeout(holdTimer);
+  if (!activeTouch || activeTouch.held) {
+    activeTouch = null;
+    return;
+  }
+  var touch = ev.changedTouches && ev.changedTouches[0];
+  if (!touch) {
+    activeTouch = null;
+    return;
+  }
+  var dx = touch.clientX - activeTouch.x;
+  var dy = touch.clientY - activeTouch.y;
+  var duration = Date.now() - activeTouch.startedAt;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance > 48) {
+    sendEvent("swipe", activeTouch.zone, pointValue(activeTouch.point, {
+      dx: Number(dx.toFixed(1)),
+      dy: Number(dy.toFixed(1)),
+      duration_ms: duration,
+      direction: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"),
+      confidence: 1.0
+    }));
+  } else if (duration < 350) {
+    sendEvent(zoneTapEvent(activeTouch.zone), activeTouch.zone, pointValue(activeTouch.point, { confidence: 1.0 }));
+  }
+  activeTouch = null;
+}
+
+function onPointerDown(ev) {
+  if (ev.pointerType === "touch") return;
+  requestSensors();
+  var point = videoPointFromClient(ev.clientX, ev.clientY);
+  var zone = hitTest(point);
+  activeTouch = {
+    x: ev.clientX,
+    y: ev.clientY,
+    startedAt: Date.now(),
+    point: point,
+    zone: zone,
+    held: false
+  };
+  holdTimer = setTimeout(function() {
+    if (!activeTouch) return;
+    activeTouch.held = true;
+    sendEvent(zoneHoldEvent(activeTouch.zone), activeTouch.zone, pointValue(activeTouch.point, { simulated: true, confidence: 1.0 }));
+  }, 800);
+}
+
+function onPointerUp(ev) {
+  if (ev.pointerType === "touch") return;
+  clearTimeout(holdTimer);
+  if (!activeTouch || activeTouch.held) {
+    activeTouch = null;
+    return;
+  }
+  var dx = ev.clientX - activeTouch.x;
+  var dy = ev.clientY - activeTouch.y;
+  var distance = Math.sqrt(dx * dx + dy * dy);
+  if (distance > 48) {
+    sendEvent("swipe", activeTouch.zone, pointValue(activeTouch.point, {
+      dx: Number(dx.toFixed(1)),
+      dy: Number(dy.toFixed(1)),
+      duration_ms: Date.now() - activeTouch.startedAt,
+      direction: Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"),
+      simulated: true,
+      confidence: 1.0
+    }));
+  } else {
+    sendEvent(zoneTapEvent(activeTouch.zone), activeTouch.zone, pointValue(activeTouch.point, { simulated: true, confidence: 1.0 }));
+  }
+  activeTouch = null;
+}
+
+function requestSensors() {
+  if (sensorsStarted || permissionRequestInFlight) return;
+  if (!window.isSecureContext) {
+    imuStatus = "insecure, trying";
+    setLastDebug("IMU needs HTTPS/secure origin");
+    log("IMU blocked: open over HTTPS or mark this origin secure in Chrome");
+    renderDebug();
+  }
+  if (permissionRequested) return;
+  permissionRequested = true;
+  permissionRequestInFlight = true;
+  imuStatus = "requesting permission";
+  renderDebug();
+  var motionPromise = Promise.resolve("granted");
+  var orientationPromise = Promise.resolve("granted");
+  if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+    motionPromise = DeviceMotionEvent.requestPermission();
+  }
+  if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+    orientationPromise = DeviceOrientationEvent.requestPermission();
+  }
+  Promise.all([motionPromise, orientationPromise]).then(function(results) {
+    permissionRequestInFlight = false;
+    if (results.indexOf("denied") >= 0) {
+      permissionRequested = false;
+      imuStatus = "permission denied";
+      log("sensor permission denied");
+      renderDebug();
+      return;
+    }
+    startSensors();
+  }).catch(function(err) {
+    permissionRequested = false;
+    permissionRequestInFlight = false;
+    imuStatus = "permission failed";
+    log("sensor permission failed " + err.message);
+    renderDebug();
+  });
+}
+
+function startSensors() {
+  if (sensorsStarted) return;
+  if (typeof DeviceMotionEvent === "undefined" && typeof DeviceOrientationEvent === "undefined") {
+    imuStatus = "not supported";
+    log("DeviceMotion/DeviceOrientation not available");
+    renderDebug();
+    return;
+  }
+  sensorsStarted = true;
+  window.addEventListener("devicemotion", onDeviceMotion, { passive: true });
+  window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
+  setInterval(sampleWalking, 200);
+  imuStatus = window.isSecureContext ? "listening" : "listening insecure";
+  log("sensors started");
+  clearTimeout(imuNoEventTimer);
+  imuNoEventTimer = setTimeout(function() {
+    if (motionEventCount === 0 && orientationEventCount === 0) {
+      imuStatus = window.isSecureContext ? "no events" : "blocked: insecure context";
+      setLastDebug("no IMU events");
+      renderDebug();
+    }
+  }, 1800);
+  renderDebug();
+}
+
+function onDeviceMotion(ev) {
+  motionEventCount++;
+  if (imuStatus.indexOf("listening") === 0 || imuStatus.indexOf("blocked") === 0 || imuStatus === "no events") {
+    imuStatus = "receiving";
+  }
+  var acc = ev.accelerationIncludingGravity || ev.acceleration || {};
+  imu.ax = Number(acc.x) || 0;
+  imu.ay = Number(acc.y) || 0;
+  imu.az = Number(acc.z) || 0;
+  var mag = Math.sqrt(imu.ax * imu.ax + imu.ay * imu.ay + imu.az * imu.az);
+  var netMag = Math.abs(mag - 9.8);
+  if (netMag > thresholds.shake) {
+    var now = Date.now();
+    if (now - imu.lastShake > thresholds.debounce.shake) {
+      imu.lastShake = now;
+      sendEvent("shake", null, {
+        accel_magnitude: Number(mag.toFixed(2)),
+        net_magnitude: Number(netMag.toFixed(2)),
+        confidence: Number(Math.min(1, netMag / thresholds.shake).toFixed(2))
+      });
+    }
+  }
+}
+
+function sampleWalking() {
+  if (!sensorsStarted) return;
+  imu.walkBuf.push(imu.az);
+  if (imu.walkBuf.length > thresholds.walkSamples + 2) imu.walkBuf.shift();
+  if (imu.walkBuf.length < thresholds.walkSamples) return;
+
+  var matches = true;
+  for (var i = 1; i < imu.walkBuf.length; i++) {
+    var delta = Math.abs(imu.walkBuf[i] - imu.walkBuf[i - 1]);
+    if (delta < thresholds.walkMin || delta > thresholds.walkMax) {
+      matches = false;
+      break;
+    }
+  }
+  if (!matches) return;
+
+  var now = Date.now();
+  if (now - imu.lastWalking <= thresholds.debounce.walking) return;
+  imu.lastWalking = now;
+  sendEvent("walking", null, {
+    z_samples: imu.walkBuf.slice(-thresholds.walkSamples).map(function(value) {
+      return Number(value.toFixed(2));
+    }),
+    confidence: 0.8
+  });
+}
+
+function onDeviceOrientation(ev) {
+  orientationEventCount++;
+  if (imuStatus.indexOf("listening") === 0 || imuStatus.indexOf("blocked") === 0 || imuStatus === "no events") {
+    imuStatus = "receiving";
+  }
+  imu.prevBeta = imu.beta;
+  imu.alpha = Number(ev.alpha) || 0;
+  imu.beta = Number(ev.beta) || 0;
+  imu.gamma = Number(ev.gamma) || 0;
+
+  var now = Date.now();
+  var absBeta = Math.abs(imu.beta);
+  var absPrevBeta = Math.abs(imu.prevBeta);
+  if (absBeta > thresholds.pickupNow && absPrevBeta < thresholds.pickupPrev && now - imu.lastPickup > thresholds.debounce.pickup) {
+    imu.lastPickup = now;
+    sendEvent("pickup", null, {
+      beta: Number(imu.beta.toFixed(1)),
+      gamma: Number(imu.gamma.toFixed(1)),
+      confidence: Number(Math.min(1, (absBeta - thresholds.pickupNow) / 30).toFixed(2))
+    });
+  }
+  if (absBeta < thresholds.putdownNow && absPrevBeta > thresholds.putdownPrev && now - imu.lastPutdown > thresholds.debounce.putdown) {
+    imu.lastPutdown = now;
+    sendEvent("putdown", null, {
+      beta: Number(imu.beta.toFixed(1)),
+      gamma: Number(imu.gamma.toFixed(1)),
+      confidence: 0.9
+    });
+  }
+  if (imu.beta > thresholds.nearBeta && Math.abs(imu.gamma) < thresholds.nearGamma && now - imu.lastNearEar > thresholds.debounce.nearEar) {
+    imu.lastNearEar = now;
+    sendEvent("near_ear", null, {
+      beta: Number(imu.beta.toFixed(1)),
+      gamma: Number(imu.gamma.toFixed(1)),
+      confidence: 0.85
+    });
+  }
+  maybeSendTilt(now);
+  renderDebug();
+}
+
+function maybeSendTilt(now) {
+  var betaDelta = Math.abs(imu.beta - imu.lastTiltBeta);
+  var gammaDelta = Math.abs(imu.gamma - imu.lastTiltGamma);
+  if (now - imu.lastTilt < thresholds.debounce.tilt) return;
+  if (betaDelta < thresholds.tiltDelta && gammaDelta < thresholds.tiltDelta) return;
+
+  imu.lastTilt = now;
+  imu.lastTiltBeta = imu.beta;
+  imu.lastTiltGamma = imu.gamma;
+  sendEvent("tilt", null, {
+    alpha: Number(imu.alpha.toFixed(1)),
+    beta: Number(imu.beta.toFixed(1)),
+    gamma: Number(imu.gamma.toFixed(1)),
+    confidence: 0.9
+  });
+}
+
+function renderAnchorDots() {
+  if (!debugVisible) return;
+  anchorLayer.textContent = "";
+  var list = currentAnchors();
+  Object.keys(list).forEach(function(key) {
+    var anchor = list[key];
+    if (!anchor.visible) return;
+    var screen = videoPointToClient(anchor.x, anchor.y);
+    var dot = document.createElement("div");
+    dot.className = "anchor-dot";
+    dot.style.left = screen.x + "px";
+    dot.style.top = screen.y + "px";
+    dot.title = key;
+    anchorLayer.appendChild(dot);
+  });
+}
+
+function videoPointToClient(x, y) {
+  var rect = video.getBoundingClientRect();
+  var videoAspect = video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 16 / 9;
+  var rectAspect = rect.width / Math.max(1, rect.height);
+  var contentW = rect.width;
+  var contentH = rect.height;
+  var offsetX = 0;
+  var offsetY = 0;
+  if (rectAspect > videoAspect) {
+    contentW = rect.height * videoAspect;
+    offsetX = (rect.width - contentW) / 2;
+  } else {
+    contentH = rect.width / videoAspect;
+    offsetY = (rect.height - contentH) / 2;
+  }
+  return {
+    x: rect.left + offsetX + clamp01(x) * contentW,
+    y: rect.top + offsetY + clamp01(y) * contentH
+  };
+}
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
+}
+
+stage.addEventListener("touchstart", onTouchStart, { passive: false });
+stage.addEventListener("touchend", onTouchEnd, { passive: false });
+stage.addEventListener("touchcancel", function(ev) {
+  ev.preventDefault();
+  clearTimeout(holdTimer);
+  clearTimeout(threeFingerTimer);
+  activeTouch = null;
+}, { passive: false });
+stage.addEventListener("pointerdown", onPointerDown);
+stage.addEventListener("pointerup", onPointerUp);
+stage.addEventListener("pointercancel", function() {
+  clearTimeout(holdTimer);
+  activeTouch = null;
+});
+document.addEventListener("touchmove", function(ev) { ev.preventDefault(); }, { passive: false });
+
+setDebugVisible(debugVisible);
+connectSensor();
+connectVideo();
+setInterval(renderDebug, 500);
+</script>
+</body>
+</html>
