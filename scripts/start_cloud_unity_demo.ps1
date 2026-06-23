@@ -9,10 +9,10 @@ param(
     [int]$TtsPort = 9001,
     [int]$SignalPort = 8080,
     [int]$GatewayPort = 8443,
-    [string]$RemoteRoot = "/tmp/herunity/unity",
+    [string]$RemoteRoot = "/tmp/MiraLink/unity",
     [string]$TurnPublicIp = "",
     [int]$TurnPort = 3478,
-    [string]$TurnUsername = "herunity",
+    [string]$TurnUsername = "miralink",
     [string]$TurnCredential = "",
     [string]$IceTransportPolicy = "relay",
     [ValidateSet("baseline", "phone_stable", "clear", "high_fps")]

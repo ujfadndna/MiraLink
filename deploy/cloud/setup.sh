@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_USER="${APP_USER:-herunity}"
-APP_ROOT="${APP_ROOT:-/opt/herunity}"
+APP_USER="${APP_USER:-miralink}"
+APP_ROOT="${APP_ROOT:-/opt/miralink}"
 ENV_FILE="${ENV_FILE:-$APP_ROOT/deploy.env}"
 BUILD_DIR="${BUILD_DIR:-$APP_ROOT/build}"
 BACKEND_DIR="${BACKEND_DIR:-$APP_ROOT/backend}"
@@ -42,12 +42,12 @@ create_directories() {
 create_env_file() {
   if [ ! -f "$ENV_FILE" ]; then
     cat >"$ENV_FILE" <<'ENV'
-# HerUnity cloud deployment environment.
+# MiraLink cloud deployment environment.
 # Replace all placeholder values before exposing the service publicly.
 ANTHROPIC_API_KEY=your_api_key_here
 ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
 TURN_URLS=turn:your-turn-server:3478?transport=udp,turn:your-turn-server:3478?transport=tcp
-TURN_USERNAME=herunity
+TURN_USERNAME=miralink
 TURN_CREDENTIAL=<turn-credential>
 TURN_PASSWORD=<turn-password>
 PORT=8080
@@ -77,9 +77,9 @@ SERVICE
 }
 
 install_systemd_units() {
-  cp "$SCRIPT_DIR/backend.service" "$SYSTEMD_DIR/herunity-backend.service"
-  cp "$SCRIPT_DIR/signalling.service" "$SYSTEMD_DIR/herunity-signalling.service"
-  cp "$SCRIPT_DIR/unity.service" "$SYSTEMD_DIR/herunity-unity.service"
+  cp "$SCRIPT_DIR/backend.service" "$SYSTEMD_DIR/miralink-backend.service"
+  cp "$SCRIPT_DIR/signalling.service" "$SYSTEMD_DIR/miralink-signalling.service"
+  cp "$SCRIPT_DIR/unity.service" "$SYSTEMD_DIR/miralink-unity.service"
   systemctl daemon-reload
 }
 
@@ -98,25 +98,25 @@ install_python_deps() {
 
 start_services() {
   systemctl enable --now xvfb.service
-  systemctl enable --now herunity-backend.service
-  systemctl enable --now herunity-signalling.service
+  systemctl enable --now miralink-backend.service
+  systemctl enable --now miralink-signalling.service
 
-  if [ -x "$BUILD_DIR/HerUnity.x86_64" ]; then
-    systemctl enable --now herunity-unity.service
+  if [ -x "$BUILD_DIR/MiraLink.x86_64" ]; then
+    systemctl enable --now miralink-unity.service
   else
-    echo "Warning: $BUILD_DIR/HerUnity.x86_64 not found or not executable. Upload the Unity build, chmod +x it, then run:"
-    echo "  systemctl enable --now herunity-unity.service"
+    echo "Warning: $BUILD_DIR/MiraLink.x86_64 not found or not executable. Upload the Unity build, chmod +x it, then run:"
+    echo "  systemctl enable --now miralink-unity.service"
   fi
 }
 
 print_summary() {
   echo
-  echo "HerUnity cloud setup summary"
+  echo "MiraLink cloud setup summary"
   echo "APP_ROOT: $APP_ROOT"
   echo "ENV_FILE: $ENV_FILE"
   echo "Logs: $LOG_DIR"
   echo
-  systemctl --no-pager --full status xvfb.service herunity-backend.service herunity-signalling.service herunity-unity.service || true
+  systemctl --no-pager --full status xvfb.service miralink-backend.service miralink-signalling.service miralink-unity.service || true
   echo
   echo "Health checks:"
   curl -fsS http://127.0.0.1:8100/health || true

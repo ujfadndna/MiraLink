@@ -13,7 +13,7 @@ if (-not $UnityPath) {
 }
 
 if (-not $OutputDir) {
-    $OutputDir = Join-Path (Split-Path -Parent $Root) "HerUnity-Build-GL"
+    $OutputDir = Join-Path (Split-Path -Parent $Root) "MiraLink-Build-GL"
 }
 
 if (-not (Test-Path $UnityPath)) {
@@ -21,7 +21,7 @@ if (-not (Test-Path $UnityPath)) {
 }
 
 $logPath = Join-Path $RuntimeDir "unity-linux-build.log"
-$expectedOutput = Join-Path $OutputDir "HerUnity.x86_64"
+$expectedOutput = Join-Path $OutputDir "MiraLink.x86_64"
 
 Write-Host "Building Linux x86_64 Unity player..."
 Write-Host "Log: $logPath"
@@ -48,7 +48,7 @@ if ($errors) {
 
 foreach ($path in @(
     $expectedOutput,
-    (Join-Path $OutputDir "HerUnity_Data"),
+    (Join-Path $OutputDir "MiraLink_Data"),
     (Join-Path $OutputDir "UnityPlayer.so")
 )) {
     if (-not (Test-Path $path)) {

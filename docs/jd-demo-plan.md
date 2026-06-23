@@ -1,6 +1,6 @@
 # Acceptance Notes
 
-HerUnity is a portfolio demo for real-time Unity digital human interaction.
+MiraLink is a portfolio demo for real-time Unity digital human interaction.
 
 ## Main Acceptance Path
 

@@ -29,7 +29,7 @@ public static class GenerateBodyTouchReactionClips
         "touch_right_foot_step",
     };
 
-    [MenuItem("HerUnity/Generate Body Touch Reaction Clips")]
+    [MenuItem("MiraLink/Generate Body Touch Reaction Clips")]
     public static void Generate()
     {
         EnsureFolder(OutputDir);
@@ -56,7 +56,7 @@ public static class GenerateBodyTouchReactionClips
         Debug.Log($"[GenerateBodyTouchReactionClips] Generated {ClipNames.Length} clips in {OutputDir}");
     }
 
-    [MenuItem("HerUnity/Setup Body Touch Reaction Controller")]
+    [MenuItem("MiraLink/Setup Body Touch Reaction Controller")]
     public static void SetupController()
     {
         Generate();

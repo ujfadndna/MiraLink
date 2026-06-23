@@ -1,7 +1,7 @@
 """
 Hermes风格持久记忆系统。
 三层：
-  SOUL   - 固定人格（只读，来自HERUNITY_SYSTEM_PROMPT）
+  SOUL   - 固定人格（只读，来自MIRALINK_SYSTEM_PROMPT）
   MEMORY - 关键事实（关于用户的重要信息，LLM提取更新）
   state.db - 完整历史 + RelationshipState（SQLite）
 """

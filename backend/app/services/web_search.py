@@ -176,7 +176,7 @@ class MockWebSearchBackend(WebSearchBackend):
             sources=[
                 WebSearchSource(
                     title="Mock source",
-                    url="https://example.com/herunity-web-search",
+                    url="https://example.com/MIRALINK-web-search",
                     snippet="Deterministic mock source for local tests and CI.",
                 )
             ][: request.max_sources],

@@ -133,7 +133,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="HerUnity Cloud Whisper ASR Service", lifespan=lifespan)
+app = FastAPI(title="MiraLink Cloud Whisper ASR Service", lifespan=lifespan)
 
 
 @app.get("/health")

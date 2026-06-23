@@ -1,4 +1,4 @@
-# HerUnity Plan
+# MiraLink Plan
 
 This file is kept as a compatibility entry point. The current public roadmap is [roadmap.md](roadmap.md).
 

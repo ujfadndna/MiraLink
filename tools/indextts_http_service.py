@@ -159,7 +159,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="HerUnity IndexTTS2 Service", lifespan=lifespan)
+app = FastAPI(title="MiraLink IndexTTS2 Service", lifespan=lifespan)
 
 
 @app.get("/health")

@@ -6,7 +6,7 @@ public static class ReliableScreenshot
 {
     private static string _pendingPath;
 
-    [MenuItem("HerUnity/Take Screenshot (Reliable)")]
+    [MenuItem("MiraLink/Take Screenshot (Reliable)")]
     public static void TakeScreenshot() => Schedule("Assets/Screenshots/reliable_screenshot.png");
 
     public static void Schedule(string assetRelativePath)

@@ -26,7 +26,7 @@ def test_mock_backend_returns_stable_structure(monkeypatch):
     assert result.provider == "mock"
     assert result.model == "mock"
     assert result.answer
-    assert result.sources[0].url == "https://example.com/herunity-web-search"
+    assert result.sources[0].url == "https://example.com/MIRALINK-web-search"
     assert result.searched_at
     assert result.elapsed_ms >= 0
 

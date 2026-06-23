@@ -60,7 +60,7 @@ public sealed class SensorFeedbackData
 }
 
 /// <summary>
-/// WebSocket client for connecting to HerUnity backend.
+/// WebSocket client for connecting to MiraLink backend.
 /// Handles session management, agent dialogue, audio/animation streaming.
 /// </summary>
 public sealed class NetworkClient : MonoBehaviour

@@ -158,7 +158,7 @@ def generate_report() -> Path:
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>HerUnity M5 Backend Evaluation</title>
+  <title>MiraLink M5 Backend Evaluation</title>
   <style>
     :root {{
       color-scheme: light;
@@ -242,7 +242,7 @@ def generate_report() -> Path:
 <body>
 <main>
   <header>
-    <h1>HerUnity M5 Backend Evaluation</h1>
+    <h1>MiraLink M5 Backend Evaluation</h1>
     <p>In-process comparison of V0 idle baseline, V1 lip sync, and V2 SPCG full behavior planning.</p>
   </header>
 

@@ -1,4 +1,4 @@
-"""Test HerUnity signalling + backend proxy"""
+"""Test MiraLink signalling + backend proxy"""
 import asyncio, websockets, json
 
 async def test_backend_proxy():

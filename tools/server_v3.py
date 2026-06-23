@@ -1,4 +1,4 @@
-"""HerUnity public gateway: static ASR UI, backend WS proxy, and WebRTC signalling."""
+"""MiraLink public gateway: static ASR UI, backend WS proxy, and WebRTC signalling."""
 from __future__ import annotations
 
 import asyncio
@@ -69,7 +69,7 @@ def _render_avatar_html() -> bytes:
     }
     injection = (
         "<script>"
-        "window.HERUNITY_SERVER_DEFAULTS="
+        "window.MIRALINK_SERVER_DEFAULTS="
         + json.dumps(defaults, ensure_ascii=False, separators=(",", ":"))
         + ";</script>\n"
     )

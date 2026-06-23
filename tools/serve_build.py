@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TAR_FILE = str(ROOT / "tools" / "build.tar.gz")
-BUILD_DIR = os.environ.get("HERUNITY_BUILD_DIR", str(ROOT.parent / "HerUnity-LinuxBuild"))
+BUILD_DIR = os.environ.get("MIRALINK_BUILD_DIR", str(ROOT.parent / "MIRALINK-LinuxBuild"))
 HTTP_PORT = 8765
 
 # Check tar exists

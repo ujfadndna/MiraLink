@@ -5,8 +5,6 @@ using UnityEngine;
 
 public static class GameViewCapture
 {
-    private const string ScreenshotFolder = "D:/HerUnity/Assets/Screenshots";
-
     [MenuItem("Tools/Capture Game View")]
     public static void CaptureFromMenu()
     {
@@ -20,8 +18,9 @@ public static class GameViewCapture
             filename = $"game-view-{DateTime.Now:yyyyMMdd-HHmmss}.png";
         }
 
-        Directory.CreateDirectory(ScreenshotFolder);
-        string path = Path.Combine(ScreenshotFolder, filename).Replace('\\', '/');
+        string screenshotFolder = Path.Combine(Application.dataPath, "Screenshots");
+        Directory.CreateDirectory(screenshotFolder);
+        string path = Path.Combine(screenshotFolder, filename).Replace('\\', '/');
         ScreenCapture.CaptureScreenshot(path);
         Debug.Log($"Game View screenshot capture requested: {path}");
     }

@@ -100,7 +100,7 @@ print('\n=== [5/5] Summary ===')
 run(ssh, 'node --version && npm --version')
 run(ssh, 'curl -s http://localhost:8100/health')
 run(ssh, 'ps aux | grep -E "server.js|uvicorn" | grep -v grep')
-run(ssh, 'ls /data/HerUnity-Build/ 2>/dev/null || echo "(empty — upload Unity build here)"')
+run(ssh, 'ls /data/MiraLink-Build/ 2>/dev/null || echo "(empty — upload Unity build here)"')
 
 public_ip = run(ssh, 'curl -s ifconfig.me 2>/dev/null || hostname -I | awk "{print $1}"')
 
@@ -112,6 +112,6 @@ Backend:     http://{public_ip}:8100/health
 
 Next steps:
   1. Unity Editor → File → Build Settings → Linux x86_64 → Build
-  2. scp -P {PORT} -r <build-dir>/ root@{HOST}:/data/HerUnity-Build/
+  2. scp -P {PORT} -r <build-dir>/ root@{HOST}:/data/MiraLink-Build/
   3. ssh -p {PORT} root@{HOST} "bash /data/start_ps.sh"
 ''')

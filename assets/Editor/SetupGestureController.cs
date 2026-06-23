@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 
 public static class SetupGestureController
 {
-    [MenuItem("HerUnity/Setup Gesture Controller")]
+    [MenuItem("MiraLink/Setup Gesture Controller")]
     public static void Run()
     {
         // 1. Delete GestureRig child under Avatar

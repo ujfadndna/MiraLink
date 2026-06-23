@@ -84,7 +84,7 @@ Before publishing:
 cd <repo>
 git diff --check
 git ls-files | rg "(diagnostics/|docs/archive/|workspace/|Library/|Logs/|Temp/|UserSettings/|\\.env$)"
-rg "D:\\\\HerUnity|C:\\\\Users\\\\|connect\\.westb\\.seetacloud\\.com|124\\.222\\.184\\.71" -n
+rg "D:\\\\MiraLink|C:\\\\Users\\\\|connect\\.westb\\.seetacloud\\.com|124\\.222\\.184\\.71" -n
 rg "BEGIN .*PRIVATE KEY" -n
 rg "sk-proj-|sk-" -n
 ```

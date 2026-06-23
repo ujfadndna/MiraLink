@@ -1,6 +1,6 @@
 """轻量安全护栏。基于本地正则规则的危机检测。
 
-从 D:\Her 迁移，适配 HerUnity 数字人场景。
+适配 MiraLink 数字人场景。
 """
 from __future__ import annotations
 

@@ -14,7 +14,7 @@ from typing import Any, Optional
 from app.agent.config import agent_settings
 from app.agent.prompts import (
     CLASSIFY_PROMPT,
-    HERUNITY_SYSTEM_PROMPT,
+    MIRALINK_SYSTEM_PROMPT,
     IDENTITY_DISCLOSURE,
     PERCEIVE_PROMPT,
 )
@@ -27,8 +27,8 @@ from app.services.base import get_backend, register
 _RULES: list[tuple[str, str, str, str]] = [
     (r"你好|嗨|hello|hi|hey", "你好！很高兴见到你 😊", "happy", "greet"),
     (r"再见|拜拜|bye|下次见", "再见！下次再聊~", "sad", "farewell"),
-    (r"你是谁|你叫什么|你的名字", "我是 HerUnity 数字人，一个基于 Unity 3D 的实时虚拟形象助手。我能用语音和你对话，还能根据情绪做出不同的表情哦。", "neutral", "self_intro"),
-    (r"介绍一下你自己|你是什么", "我是 HerUnity 数字人，结合了语音合成、口型同步和情绪表情技术。我的核心创新是 SPCG 语义-韵律耦合行为规划算法，能让数字人的手势、表情和语音在时间轴上精确对齐。", "confident", "explain"),
+    (r"你是谁|你叫什么|你的名字", "我是 MiraLink 数字人，一个基于 Unity 3D 的实时虚拟形象助手。我能用语音和你对话，还能根据情绪做出不同的表情哦。", "neutral", "self_intro"),
+    (r"介绍一下你自己|你是什么", "我是 MiraLink 数字人，结合了语音合成、口型同步和情绪表情技术。我的核心创新是 SPCG 语义-韵律耦合行为规划算法，能让数字人的手势、表情和语音在时间轴上精确对齐。", "confident", "explain"),
     (r"你的.*创新|算法.*创新|核心.*创新", "我的核心创新是 SPCG 语义-韵律耦合行为规划。它把文本语义、语音韵律和 Unity 动画约束联合建模，让数字人的表情和手势不再随机，而是精准对齐到语义重点和语音重音上。", "confident", "explain"),
     (r"你能做什么|功能|能力", "我能实时对话、展示口型同步、根据情绪改变表情，还能做语义手势。未来我还会学会看向物体、指向目标和更自然的身体动作。", "happy", "explain"),
     (r"开心|高兴|快乐|哈哈", "太好了！看到你开心我也很开心~", "happy", "greet"),
@@ -274,7 +274,7 @@ class LangGraphAgent(AgentBackend):
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
         today = datetime.now().date().isoformat()
-        system_prompt = HERUNITY_SYSTEM_PROMPT.format(date=today)
+        system_prompt = MIRALINK_SYSTEM_PROMPT.format(date=today)
 
         # 首次对话加身份披露
         session_id = state.get("session_id", "")
@@ -384,7 +384,7 @@ class LangGraphAgent(AgentBackend):
         from app.schemas import AgentStreamEvent
 
         today = datetime.now().date().isoformat()
-        system_prompt = HERUNITY_SYSTEM_PROMPT.format(date=today)
+        system_prompt = MIRALINK_SYSTEM_PROMPT.format(date=today)
 
         # 首次对话加身份披露
         is_first = session_id not in self._first_turn

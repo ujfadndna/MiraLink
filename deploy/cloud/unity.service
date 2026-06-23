@@ -1,24 +1,24 @@
 [Unit]
-Description=HerUnity Unity Linux Player
-After=network-online.target herunity-backend.service herunity-signalling.service xvfb.service
+Description=MiraLink Unity Linux Player
+After=network-online.target miralink-backend.service miralink-signalling.service xvfb.service
 Wants=network-online.target
-Requires=herunity-backend.service herunity-signalling.service
+Requires=miralink-backend.service miralink-signalling.service
 
 [Service]
 Type=simple
-User=herunity
-Group=herunity
-WorkingDirectory=/opt/herunity/build
-EnvironmentFile=-/opt/herunity/deploy.env
+User=miralink
+Group=miralink
+WorkingDirectory=/opt/MiraLink/build
+EnvironmentFile=-/opt/MiraLink/deploy.env
 Environment=DISPLAY=:99
 Environment=XDG_RUNTIME_DIR=/tmp
-Environment=LD_LIBRARY_PATH=/opt/herunity/build:/opt/herunity/nvidia_libs
+Environment=LD_LIBRARY_PATH=/opt/MiraLink/build:/opt/MiraLink/nvidia_libs
 Environment=VK_ICD_FILENAMES=/etc/vulkan/icd.d/nvidia_icd.json
-ExecStart=/opt/herunity/build/HerUnity.x86_64 -batchmode -RenderOffscreen -logfile /opt/herunity/logs/unity.log
+ExecStart=/opt/MiraLink/build/MiraLink.x86_64 -batchmode -RenderOffscreen -logfile /opt/MiraLink/logs/unity.log
 Restart=always
 RestartSec=8
-StandardOutput=append:/opt/herunity/logs/unity.stdout.log
-StandardError=append:/opt/herunity/logs/unity.stderr.log
+StandardOutput=append:/opt/MiraLink/logs/unity.stdout.log
+StandardError=append:/opt/MiraLink/logs/unity.stderr.log
 
 [Install]
 WantedBy=multi-user.target

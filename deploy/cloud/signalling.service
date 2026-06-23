@@ -1,20 +1,20 @@
 [Unit]
-Description=HerUnity Python RenderStreaming Signalling Server
+Description=MiraLink Python RenderStreaming Signalling Server
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=herunity
-Group=herunity
-WorkingDirectory=/opt/herunity/signalling
-EnvironmentFile=-/opt/herunity/deploy.env
+User=miralink
+Group=miralink
+WorkingDirectory=/opt/MiraLink/signalling
+EnvironmentFile=-/opt/MiraLink/deploy.env
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/opt/herunity/.venv/bin/python -u /opt/herunity/signalling/server.py
+ExecStart=/opt/MiraLink/.venv/bin/python -u /opt/MiraLink/signalling/server.py
 Restart=always
 RestartSec=5
-StandardOutput=append:/opt/herunity/logs/signalling.log
-StandardError=append:/opt/herunity/logs/signalling.log
+StandardOutput=append:/opt/MiraLink/logs/signalling.log
+StandardError=append:/opt/MiraLink/logs/signalling.log
 
 [Install]
 WantedBy=multi-user.target

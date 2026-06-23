@@ -1,6 +1,6 @@
 # SPCG 设计摘要
 
-SPCG 是 HerUnity 的行为规划能力：**Semantic-Prosody Coupled Gesture and Expression Planner**，即语义-韵律耦合的表情与手势规划器。
+SPCG 是 MiraLink 的行为规划能力：**Semantic-Prosody Coupled Gesture and Expression Planner**，即语义-韵律耦合的表情与手势规划器。
 
 当前 JD Demo 主线只需要使用已有规则能力来驱动可见动作和表情，不需要继续训练模型或追求完整 prosody 评测。本文作为算法设计摘要和面试加分材料保留。
 

@@ -1,4 +1,4 @@
-"""HerUnity Backend - 实时 3D 数字人后端服务"""
+"""MiraLink Backend - 实时 3D 数字人后端服务"""
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -28,7 +28,7 @@ async def lifespan(_: FastAPI):
     yield
 
 app = FastAPI(
-    title="HerUnity Backend",
+    title="MiraLink Backend",
     description="实时 3D 虚拟形象数字人后端：对话、TTS、行为规划、评测",
     version="0.1.0",
     lifespan=lifespan,

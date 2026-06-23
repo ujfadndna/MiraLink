@@ -2,7 +2,7 @@ param(
     [int]$BackendPort = 8100,
     [int]$SignalPort = 8080,
     [int]$GatewayPort = 8443,
-    [string]$UnityPath = "D:\Unity Editor\2022.3.62f3c1\Editor\Unity.exe",
+    [string]$UnityPath = "",
     [switch]$SkipUnityCompile,
     [switch]$SkipCloudAsr,
     [switch]$SkipCloudTts
@@ -12,6 +12,10 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 $BackendDir = Join-Path $Root "backend"
 $UnityLog = Join-Path $Root "workspace\unity-compile.log"
+
+if (-not $UnityPath) {
+    $UnityPath = Join-Path $env:ProgramFiles "Unity\Hub\Editor\2022.3.62f3c1\Editor\Unity.exe"
+}
 
 function Write-Step($Text) {
     Write-Host ""

@@ -1,4 +1,4 @@
-"""HerUnity 后端配置。"""
+"""MiraLink 后端配置。"""
 from __future__ import annotations
 
 from pathlib import Path

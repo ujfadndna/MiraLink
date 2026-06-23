@@ -32,6 +32,6 @@ mkdir -p /data/logs
 
 echo "Stage 2 setup complete."
 echo "Next steps:"
-echo "  1. Upload Unity Linux build to /data/HerUnity-Build/"
+echo "  1. Upload Unity Linux build to /data/MiraLink-Build/"
 echo "  2. Copy SignallingWebServer/ from Unity package to /data/pixelstreaming-signalling/"
 echo "  3. Run: bash scripts/start_ps.sh"

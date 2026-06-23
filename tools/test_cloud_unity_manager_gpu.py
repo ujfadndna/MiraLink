@@ -109,16 +109,16 @@ def test_nvidia_preflight_accepts_nonzero_gpu_device_number() -> None:
 
 
 def test_prepare_paths_are_isolated_by_driver_version() -> None:
-    paths = manager.nvidia_fix_paths("/tmp/herunity/nvidia-fix", "570.124.04")
+    paths = manager.nvidia_fix_paths("/tmp/MiraLink/nvidia-fix", "570.124.04")
 
-    assert paths.extract_dir == "/tmp/herunity/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04"
-    assert paths.xorg_module_dir == "/tmp/herunity/nvidia-fix/xorg-modules-570.124.04"
-    assert paths.xorg_conf == "/tmp/herunity/nvidia-fix/xorg-herunity-nvidia.conf"
+    assert paths.extract_dir == "/tmp/MiraLink/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04"
+    assert paths.xorg_module_dir == "/tmp/MiraLink/nvidia-fix/xorg-modules-570.124.04"
+    assert paths.xorg_conf == "/tmp/MiraLink/nvidia-fix/xorg-miralink-nvidia.conf"
 
 
 def test_prepare_command_accepts_versioned_glxserver_filename() -> None:
     cmd = manager._prepare_nvidia_xorg_command(
-        fix_dir="/tmp/herunity/nvidia-fix",
+        fix_dir="/tmp/MiraLink/nvidia-fix",
         version="570.124.04",
         xorg_bus_id="PCI:94:0:0",
         virtual_width=360,
@@ -132,22 +132,22 @@ def test_prepare_command_accepts_versioned_glxserver_filename() -> None:
 
 def test_start_command_uses_isolated_xorg_modulepath_and_glx_gate() -> None:
     args = argparse.Namespace(
-        remote_root="/tmp/herunity/unity",
-        remote_log_dir="/tmp/herunity/unity/logs",
-        remote_build_dir="/tmp/herunity/unity/HerUnity-Build",
+        remote_root="/tmp/MiraLink/unity",
+        remote_log_dir="/tmp/MiraLink/unity/logs",
+        remote_build_dir="/tmp/MiraLink/unity/MiraLink-Build",
         signal_port=8080,
         stream_width=360,
         stream_height=640,
-        nvidia_xorg_conf="/tmp/herunity/nvidia-fix/xorg-herunity-nvidia.conf",
-        nvidia_fix_dir="/tmp/herunity/nvidia-fix",
+        nvidia_xorg_conf="/tmp/MiraLink/nvidia-fix/xorg-miralink-nvidia.conf",
+        nvidia_fix_dir="/tmp/MiraLink/nvidia-fix",
         nvidia_driver_version="570.124.04",
     )
 
     cmd, env_prefix, _module_dir = manager.build_nvidia_xorg_start_command(args, "python3")
 
-    assert "-modulepath /tmp/herunity/nvidia-fix/xorg-modules-570.124.04" in cmd
+    assert "-modulepath /tmp/MiraLink/nvidia-fix/xorg-modules-570.124.04" in cmd
     assert "assert_nvidia_glx_or_exit" in cmd
     assert "llvmpipe" in cmd
-    assert "/tmp/herunity/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04" in env_prefix
-    assert "LD_PRELOAD=/tmp/herunity/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04/libGL.so.1.7.0" in cmd
+    assert "/tmp/MiraLink/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04" in env_prefix
+    assert "LD_PRELOAD=/tmp/MiraLink/nvidia-fix/NVIDIA-Linux-x86_64-570.124.04/libGL.so.1.7.0" in cmd
     assert "\n|| true" not in cmd

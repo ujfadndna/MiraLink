@@ -1,6 +1,6 @@
 # Architecture
 
-HerUnity connects a mobile browser, a FastAPI backend, and a Unity digital human scene.
+MiraLink connects a mobile browser, a FastAPI backend, and a Unity digital human scene.
 
 ## Runtime Paths
 

@@ -1,6 +1,6 @@
-# HerUnity
+# MiraLink
 
-HerUnity is a portfolio demo for a real-time Unity digital human: a phone browser streams the Unity scene, sends touch and sensor-like events over WebSocket, and drives a VRM avatar's animation, facial expression, UI, sound, particles, and optional voice response chain.
+MiraLink is a portfolio demo for a real-time Unity digital human: a phone browser streams the Unity scene, sends touch and sensor-like events over WebSocket, and drives a VRM avatar's animation, facial expression, UI, sound, particles, and optional voice response chain.
 
 > Demo media: add a short GIF or screenshot here after recording the public demo.
 
@@ -120,7 +120,7 @@ Mock results are useful for smoke tests but must not be used as evidence that re
 ## Repository Layout
 
 ```text
-HerUnity/
+MiraLink/
   assets/                         Unity scene, scripts, animations, audio, data, model
   backend/                        FastAPI app, WebSocket routers, ASR/TTS/Agent services
   frontend/                       phone demo page and debug controller

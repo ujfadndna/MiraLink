@@ -16,7 +16,12 @@ public static class BuildOpenGLCoreScript
             new[] { GraphicsDeviceType.OpenGLCore }
         );
 
-        var outputPath = GetCommandLineValue("-buildOutputPath") ?? "D:/HerUnity-Build-GL/HerUnity.x86_64";
+        var outputPath = GetCommandLineValue("-buildOutputPath")
+            ?? System.IO.Path.Combine(
+                System.IO.Directory.GetParent(Application.dataPath).Parent.FullName,
+                "MiraLink-Build-GL",
+                "MiraLink.x86_64"
+            );
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(outputPath));
 
         var report = BuildPipeline.BuildPlayer(

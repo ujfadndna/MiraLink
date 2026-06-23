@@ -16,7 +16,7 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 
 
-PROJECT_ROOT = Path("D:/HerUnity")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = PROJECT_ROOT / "backend" / ".env"
 SCREENSHOT_PATH = PROJECT_ROOT / "Assets" / "Screenshots" / "analysis_capture.png"
 UNITY_SKILLS_URL = "http://localhost:8090"

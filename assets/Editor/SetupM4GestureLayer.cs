@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class SetupM4GestureLayer
 {
-    private const string MenuPath = "HerUnity/Setup M4 Gesture Layer";
+    private const string MenuPath = "MiraLink/Setup M4 Gesture Layer";
     private const string GestureFolderPath = "Assets/Animations/Gestures";
     private const string GestureIdleClipPath = GestureFolderPath + "/GestureIdle.anim";
     private const string GestureAnimatorControllerPath = GestureFolderPath + "/GestureAnimator.controller";

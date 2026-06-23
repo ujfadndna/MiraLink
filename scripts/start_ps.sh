@@ -3,7 +3,7 @@
 set -e
 
 SIGNAL_DIR=/data/pixelstreaming-signalling
-BUILD_DIR=/data/HerUnity-Build
+BUILD_DIR=/data/MiraLink-Build
 LOG_DIR=/data/logs
 mkdir -p "$LOG_DIR"
 
@@ -19,7 +19,7 @@ if [ -f /etc/turnserver.conf ]; then
     turnserver -c /etc/turnserver.conf --no-auth --listening-port 3478 \
         >> "$LOG_DIR/coturn.log" 2>&1 &
 else
-    turnserver --no-auth --listening-port 3478 --realm herunity \
+    turnserver --no-auth --listening-port 3478 --realm miralink \
         >> "$LOG_DIR/coturn.log" 2>&1 &
 fi
 sleep 1
@@ -32,9 +32,9 @@ node cirrus.js --HttpPort 80 --StreamerPort 8888 \
 sleep 2
 
 echo "[4/4] Starting Unity headless with Pixel Streaming..."
-pkill -f "HerUnity.x86_64" 2>/dev/null || true
+pkill -f "MiraLink.x86_64" 2>/dev/null || true
 cd "$BUILD_DIR"
-DISPLAY=:99 ./HerUnity.x86_64 \
+DISPLAY=:99 ./MiraLink.x86_64 \
     -RenderOffscreen \
     -PixelStreamingURL ws://127.0.0.1:8888 \
     >> "$LOG_DIR/unity.log" 2>&1 &

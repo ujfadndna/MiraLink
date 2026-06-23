@@ -1,4 +1,4 @@
-# HerUnity M5 Backend Evaluation
+# MiraLink M5 Backend Evaluation
 
 This harness runs the M5 backend evaluation in-process. It does not require Unity, a running FastAPI server, or a WebSocket client.
 

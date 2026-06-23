@@ -1,4 +1,4 @@
-"""Read-only ICE/TURN diagnostics for the current HerUnity deployment."""
+"""Read-only ICE/TURN diagnostics for the current MiraLink deployment."""
 from __future__ import annotations
 
 import argparse
@@ -37,7 +37,7 @@ def run_remote(host: str, port: int, user: str, password: str) -> None:
 
     commands = [
         "hostname && date",
-        'ps aux | grep -E "HerUnity|server.py|uvicorn|turnserver|Xvfb" | grep -v grep || true',
+        'ps aux | grep -E "MiraLink|server.py|uvicorn|turnserver|Xvfb" | grep -v grep || true',
         'ss -lntup 2>/dev/null | grep -E ":(80|3478|8100|7860)" || true',
         'test -f /etc/turnserver.conf && sed -n "1,120p" /etc/turnserver.conf || echo no-turn-conf',
         "tail -n 120 /data/logs/sig.log 2>/dev/null || true",

@@ -1,6 +1,6 @@
 # Deployment Notes
 
-The default HerUnity demo is local. See [local-demo.md](local-demo.md).
+The default MiraLink demo is local. See [local-demo.md](local-demo.md).
 
 Cloud deployment is optional and documented as a template in [cloud-demo.md](cloud-demo.md). Do not publish real infrastructure details in this repository.
 

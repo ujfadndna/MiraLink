@@ -22,8 +22,8 @@ import paramiko
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REMOTE_ROOT = "/tmp/herunity/unity"
-DEFAULT_NVIDIA_FIX_DIR = "/tmp/herunity/nvidia-fix"
+DEFAULT_REMOTE_ROOT = "/tmp/MiraLink/unity"
+DEFAULT_NVIDIA_FIX_DIR = "/tmp/MiraLink/nvidia-fix"
 DEFAULT_NVIDIA_DOWNLOAD_BASE_URL = "https://download.nvidia.com/XFree86/Linux-x86_64"
 NVIDIA_VERSION_PATTERN = r"\d{3}\.\d{2,3}(?:\.\d{2})?"
 NVIDIA_VERSION_RE = re.compile(r"\b" + NVIDIA_VERSION_PATTERN + r"\b")
@@ -193,7 +193,7 @@ def nvidia_fix_paths(fix_dir: str, version: str) -> NvidiaFixPaths:
         cache_dir=posixpath.join(clean_fix_dir, "cache"),
         extract_dir=posixpath.join(clean_fix_dir, f"NVIDIA-Linux-x86_64-{version}"),
         xorg_module_dir=posixpath.join(clean_fix_dir, f"xorg-modules-{version}"),
-        xorg_conf=posixpath.join(clean_fix_dir, "xorg-herunity-nvidia.conf"),
+        xorg_conf=posixpath.join(clean_fix_dir, "xorg-miralink-nvidia.conf"),
         current_version_file=posixpath.join(clean_fix_dir, "current-driver-version"),
     )
 
@@ -366,7 +366,7 @@ def gpu_preflight(client: paramiko.SSHClient, args: argparse.Namespace) -> GPUPr
 
 def _shell_write_xorg_conf_command(path: str, bus_id: str, virtual_width: int, virtual_height: int) -> str:
     conf = f"""Section "ServerLayout"
-    Identifier "HerUnity"
+    Identifier "MIRALINK"
     Screen 0 "Screen0" 0 0
 EndSection
 
@@ -616,8 +616,8 @@ def mkdir_remote(client: paramiko.SSHClient, remote_path: str) -> None:
 
 def upload_build(client: paramiko.SSHClient, args: argparse.Namespace) -> None:
     local_build_dir = Path(args.local_build_dir).resolve()
-    exe = local_build_dir / "HerUnity.x86_64"
-    data_dir = local_build_dir / "HerUnity_Data"
+    exe = local_build_dir / "MiraLink.x86_64"
+    data_dir = local_build_dir / "MiraLink_Data"
     player = local_build_dir / "UnityPlayer.so"
     missing = [str(path) for path in [exe, data_dir, player] if not path.exists()]
     if missing:
@@ -626,7 +626,7 @@ def upload_build(client: paramiko.SSHClient, args: argparse.Namespace) -> None:
     ensure_dirs(client, args)
     archive_path = None
     try:
-        fd, raw_archive_path = tempfile.mkstemp(prefix="herunity-build-", suffix=".tar.gz")
+        fd, raw_archive_path = tempfile.mkstemp(prefix="MIRALINK-build-", suffix=".tar.gz")
         os.close(fd)
         archive_path = Path(raw_archive_path)
         print(f"packing build archive: {archive_path}")
@@ -635,7 +635,7 @@ def upload_build(client: paramiko.SSHClient, args: argparse.Namespace) -> None:
                 tar.add(path, arcname=path.relative_to(local_build_dir).as_posix())
 
         size_mb = archive_path.stat().st_size / 1048576
-        remote_archive = posixpath.join(args.remote_root, "HerUnity-Build.tar.gz")
+        remote_archive = posixpath.join(args.remote_root, "MiraLink-Build.tar.gz")
         print(f"uploading archive ({size_mb:.1f} MB) -> {remote_archive}")
         uploaded_marks: set[int] = set()
 
@@ -658,9 +658,9 @@ set -e
 rm -rf {shlex.quote(args.remote_build_dir)}
 mkdir -p {shlex.quote(args.remote_build_dir)}
 tar -xzf {shlex.quote(remote_archive)} -C {shlex.quote(args.remote_build_dir)}
-chmod +x {shlex.quote(posixpath.join(args.remote_build_dir, 'HerUnity.x86_64'))}
-test -x {shlex.quote(posixpath.join(args.remote_build_dir, 'HerUnity.x86_64'))}
-test -d {shlex.quote(posixpath.join(args.remote_build_dir, 'HerUnity_Data'))}
+chmod +x {shlex.quote(posixpath.join(args.remote_build_dir, 'MiraLink.x86_64'))}
+test -x {shlex.quote(posixpath.join(args.remote_build_dir, 'MiraLink.x86_64'))}
+test -d {shlex.quote(posixpath.join(args.remote_build_dir, 'MiraLink_Data'))}
 test -f {shlex.quote(posixpath.join(args.remote_build_dir, 'UnityPlayer.so'))}
 """
         run(client, extract_cmd, timeout=180)
@@ -687,10 +687,10 @@ echo "$PY"
 
 def start_cloud_runtime(client: paramiko.SSHClient, args: argparse.Namespace) -> None:
     upload_signalling(client, args)
-    exe_path = posixpath.join(args.remote_build_dir, "HerUnity.x86_64")
+    exe_path = posixpath.join(args.remote_build_dir, "MiraLink.x86_64")
     check_build = (
         f"test -x {shlex.quote(exe_path)} "
-        f"&& test -d {shlex.quote(posixpath.join(args.remote_build_dir, 'HerUnity_Data'))} "
+        f"&& test -d {shlex.quote(posixpath.join(args.remote_build_dir, 'MiraLink_Data'))} "
         f"&& test -f {shlex.quote(posixpath.join(args.remote_build_dir, 'UnityPlayer.so'))}"
     )
     run(
@@ -824,7 +824,7 @@ for p in $(ps -eo pid=); do
   [ "$p" = "$$" ] && continue
   cmdline=$(tr '\0' ' ' </proc/$p/cmdline 2>/dev/null || true)
   case "$cmdline" in
-    *HerUnity.x86_64*|*server_v3.py*|*"Xvfb :99"*|*"Xorg :99"*) targets="$targets $p"; kill "$p" 2>/dev/null || true ;;
+    *MiraLink.x86_64*|*server_v3.py*|*"Xvfb :99"*|*"Xorg :99"*) targets="$targets $p"; kill "$p" 2>/dev/null || true ;;
   esac
 done
 if [ -n "$targets" ]; then
@@ -888,7 +888,7 @@ echo "Unity env: CUDA_VISIBLE_DEVICES={unity_cuda_log}" >> {shlex.quote(unity_st
 echo "Unity CUDA note: CUDA_VISIBLE_DEVICES only limits CUDA compute visibility; OpenGL rendering is selected by DISPLAY=:99 Xorg/NVIDIA." >> {shlex.quote(unity_stdout)}
 echo "Unity display: {display_label}" >> {shlex.quote(unity_stdout)}
 echo "Unity ICE: policy={shlex.quote(args.ice_transport_policy)} turnUrls={'set' if turn_urls else 'empty'} turnUsername={'set' if turn_username else 'empty'} turnCredentialLen={len(turn_credential)}" >> {shlex.quote(unity_stdout)}
-{unity_env_prefix}DISPLAY=:99 XDG_RUNTIME_DIR=/tmp nohup ./HerUnity.x86_64 {unity_args_text} >> {shlex.quote(unity_stdout)} 2>&1 < /dev/null &
+{unity_env_prefix}DISPLAY=:99 XDG_RUNTIME_DIR=/tmp nohup ./MiraLink.x86_64 {unity_args_text} >> {shlex.quote(unity_stdout)} 2>&1 < /dev/null &
 sleep 2
 ps -eo pid,ppid,stat,cmd | egrep '[H]erUnity.x86_64|[s]erver_v3.py|{display_process_pattern}' || true
 """
@@ -1070,7 +1070,7 @@ for p in $(ps -eo pid=); do
   [ "$p" = "$$" ] && continue
   cmdline=$(tr '\0' ' ' </proc/$p/cmdline 2>/dev/null || true)
   case "$cmdline" in
-    *HerUnity.x86_64*|*server_v3.py*|*"Xvfb :99"*|*"Xorg :99"*) kill "$p" 2>/dev/null || true ;;
+    *MiraLink.x86_64*|*server_v3.py*|*"Xvfb :99"*|*"Xorg :99"*) kill "$p" 2>/dev/null || true ;;
   esac
 done
 echo stopped
@@ -1099,7 +1099,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--remote-signalling-dir", default="")
     parser.add_argument("--remote-log-dir", default="")
     parser.add_argument("--remote-run-dir", default="")
-    parser.add_argument("--local-build-dir", default=str(ROOT.parent / "HerUnity-Build-GL"))
+    parser.add_argument("--local-build-dir", default=str(ROOT.parent / "MiraLink-Build-GL"))
     parser.add_argument("--signal-port", type=int, default=8080)
     parser.add_argument("--asr-port", type=int, default=9002)
     parser.add_argument("--tts-port", type=int, default=9001)
@@ -1112,7 +1112,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--display-server", choices=["xvfb", "nvidia-xorg"], default="xvfb")
     parser.add_argument(
         "--nvidia-xorg-conf",
-        default=posixpath.join(DEFAULT_NVIDIA_FIX_DIR, "xorg-herunity-nvidia.conf"),
+        default=posixpath.join(DEFAULT_NVIDIA_FIX_DIR, "xorg-miralink-nvidia.conf"),
     )
     parser.add_argument("--nvidia-fix-dir", default=DEFAULT_NVIDIA_FIX_DIR)
     parser.add_argument("--nvidia-driver-version", default="")
@@ -1133,7 +1133,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument("--no-install-xvfb", action="store_true")
     args = parser.parse_args(argv)
-    args.remote_build_dir = args.remote_build_dir or posixpath.join(args.remote_root, "HerUnity-Build")
+    args.remote_build_dir = args.remote_build_dir or posixpath.join(args.remote_root, "MiraLink-Build")
     args.remote_signalling_dir = args.remote_signalling_dir or posixpath.join(args.remote_root, "signalling")
     args.remote_log_dir = args.remote_log_dir or posixpath.join(args.remote_root, "logs")
     args.remote_run_dir = args.remote_run_dir or posixpath.join(args.remote_root, "run")

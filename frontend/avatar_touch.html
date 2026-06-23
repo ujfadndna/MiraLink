@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>HerUnity Avatar Touch</title>
+  <title>MiraLink Avatar Touch</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -308,7 +308,7 @@ var debugLog = document.getElementById("debug-log");
 
 var DEFAULT_BACKEND_PORT = "8100";
 var DEFAULT_SIGNAL_PORT = "8080";
-var SERVER_DEFAULTS = window.HERUNITY_SERVER_DEFAULTS || {};
+var SERVER_DEFAULTS = window.MIRALINK_SERVER_DEFAULTS || {};
 var DEFAULT_ICE_TRANSPORT_POLICY = String(SERVER_DEFAULTS.iceTransportPolicy || "all").trim().toLowerCase() || "all";
 var DEFAULT_ICE_SERVERS = Array.isArray(SERVER_DEFAULTS.iceServers) && SERVER_DEFAULTS.iceServers.length ? SERVER_DEFAULTS.iceServers : [{ urls: "stun:stun.l.google.com:19302" }];
 var ANCHOR_TTL_MS = 750;

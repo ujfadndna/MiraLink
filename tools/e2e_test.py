@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cloud E2E smoke test for the HerUnity avatar WebSocket pipeline.
+"""Cloud E2E smoke test for the MiraLink avatar WebSocket pipeline.
 
 Checks the remote services over SSH, forwards remote localhost:8100 to a local
 port, sends a small avatar conversation over WebSocket, and prints a pass/fail
@@ -125,7 +125,7 @@ class ForwardHandler(socketserver.BaseRequestHandler):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run a cloud E2E test against the HerUnity avatar WebSocket.",
+        description="Run a cloud E2E test against the MiraLink avatar WebSocket.",
     )
     parser.add_argument("--host", default=HOST)
     parser.add_argument("--port", type=int, default=PORT)
@@ -191,7 +191,7 @@ def check_remote_services(ssh: paramiko.SSHClient) -> list[CheckResult]:
         ),
         (
             "Unity process",
-            "pgrep -a -f 'HerUnity\\.x86_64' | grep -v -E 'pgrep|bash -c|sh -c' | head -5",
+            "pgrep -a -f 'MiraLink\\.x86_64' | grep -v -E 'pgrep|bash -c|sh -c' | head -5",
         ),
     ]
 

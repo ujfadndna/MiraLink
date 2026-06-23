@@ -376,7 +376,7 @@ def _quick_call_response(text: str) -> AgentResponse | None:
 
     if re.search(r"介绍一下你自己|你是谁|你叫什么|你是什么", normalized):
         return AgentResponse(
-            reply_text="我是 HerUnity 数字人助手，可以语音对话、做口型同步，也能在 Unity 里显示表情和动作。",
+            reply_text="我是 MiraLink 数字人助手，可以语音对话、做口型同步，也能在 Unity 里显示表情和动作。",
             emotion="happy",
             dialogue_act="self_intro",
         )

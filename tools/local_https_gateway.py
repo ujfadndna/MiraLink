@@ -110,7 +110,7 @@ def _render_avatar_html(file_path: Path) -> bytes:
     }
     injection = (
         "<script>"
-        "window.HERUNITY_SERVER_DEFAULTS="
+        "window.MIRALINK_SERVER_DEFAULTS="
         + json.dumps(defaults, ensure_ascii=False, separators=(",", ":"))
         + ";</script>\n"
     )
@@ -164,7 +164,7 @@ def _ensure_cert() -> None:
 
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "HerUnity Local Gateway"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "MiraLink Local Gateway"),
     ])
     san_entries: list[x509.GeneralName] = [
         x509.DNSName("localhost"),

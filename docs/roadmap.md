@@ -1,6 +1,6 @@
 # Roadmap
 
-HerUnity is scoped as a portfolio demo for a real-time Unity digital human. The main path is local and reproducible; cloud streaming and production operations are optional extensions.
+MiraLink is scoped as a portfolio demo for a real-time Unity digital human. The main path is local and reproducible; cloud streaming and production operations are optional extensions.
 
 ## Completed Core Work
 

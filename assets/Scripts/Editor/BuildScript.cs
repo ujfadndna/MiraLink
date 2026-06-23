@@ -10,7 +10,11 @@ public static class BuildScript
             new EditorBuildSettingsScene("Assets/Scenes/MainScene.unity", true)
         };
 
-        var outputPath = "D:/HerUnity-Build/HerUnity.x86_64";
+        var outputPath = System.IO.Path.Combine(
+            System.IO.Directory.GetParent(Application.dataPath).Parent.FullName,
+            "MiraLink-Build",
+            "MiraLink.x86_64"
+        );
         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(outputPath));
 
         var report = BuildPipeline.BuildPlayer(

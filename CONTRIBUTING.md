@@ -1,6 +1,6 @@
-# Contributing to HerUnity
+# Contributing to MiraLink
 
-HerUnity is a Unity real-time digital human portfolio demo. Contributions should preserve the live interaction loop across phone browser, FastAPI backend, WebSocket protocol, and Unity avatar feedback.
+MiraLink is a Unity real-time digital human portfolio demo. Contributions should preserve the live interaction loop across phone browser, FastAPI backend, WebSocket protocol, and Unity avatar feedback.
 
 ## Setup
 
@@ -13,7 +13,7 @@ Requirements:
 
 ```powershell
 git clone <repo-url>
-cd HerUnity
+cd MiraLink
 
 cd backend
 pip install -r requirements.txt

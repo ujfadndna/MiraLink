@@ -131,7 +131,7 @@ const context = {
   window: {
     innerHeight: 844,
     PointerEvent: function PointerEvent() {},
-    HERUNITY_SERVER_DEFAULTS: {
+    MIRALINK_SERVER_DEFAULTS: {
       iceTransportPolicy: "relay",
       iceServers: [
         {

@@ -10,7 +10,7 @@
   {
     "id": "tc_002",
     "category": "self_intro",
-    "input": "介绍一下你自己，以及你在 HerUnity 项目里负责什么。",
+    "input": "介绍一下你自己，以及你在 MiraLink 项目里负责什么。",
     "expected_emotion": "confident",
     "expected_acts": ["explain", "self_intro"],
     "expected_gesture_types": ["gesture_emphasis"]
@@ -50,7 +50,7 @@
   {
     "id": "tc_007",
     "category": "explanation",
-    "input": "请解释一下什么是 HerUnity 的数字人技术。",
+    "input": "请解释一下什么是 MiraLink 的数字人技术。",
     "expected_emotion": "neutral",
     "expected_acts": ["explain"],
     "expected_gesture_types": ["gesture_explain"]
@@ -98,7 +98,7 @@
   {
     "id": "tc_013",
     "category": "enumeration",
-    "input": "请按第一、第二、第三介绍 HerUnity 的主要能力。",
+    "input": "请按第一、第二、第三介绍 MiraLink 的主要能力。",
     "expected_emotion": "neutral",
     "expected_acts": ["enumerate"],
     "expected_gesture_types": ["gesture_enumerate"]
@@ -226,7 +226,7 @@
   {
     "id": "tc_029",
     "category": "emotion",
-    "input": "谢谢你帮我完成这次 HerUnity 演示。",
+    "input": "谢谢你帮我完成这次 MiraLink 演示。",
     "expected_emotion": "happy",
     "expected_acts": ["greet"],
     "expected_gesture_types": []

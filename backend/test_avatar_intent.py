@@ -5,19 +5,19 @@ from app.services.avatar_intent import parse_avatar_action_intent
 
 
 @pytest.mark.anyio
-async def test_mock_agent_general_question_is_not_herunity_only():
+async def test_mock_agent_general_question_is_not_miralink_only():
     response = await MockAgent().generate("今天晚饭吃什么", "sess_mock_open")
 
     assert "只能回答" not in response.reply_text
-    assert "HerUnity 项目" not in response.reply_text
+    assert "MiraLink 项目" not in response.reply_text
     assert "数字人技术" not in response.reply_text
 
 
 @pytest.mark.anyio
-async def test_mock_agent_identity_still_answers_herunity_avatar():
+async def test_mock_agent_identity_still_answers_miralink_avatar():
     response = await MockAgent().generate("你是谁", "sess_mock_identity")
 
-    assert "HerUnity" in response.reply_text
+    assert "MiraLink" in response.reply_text
     assert "数字人" in response.reply_text
     assert response.dialogue_act == "self_intro"
 
