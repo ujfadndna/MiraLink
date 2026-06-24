@@ -301,6 +301,13 @@ python tools/server_v3.py -IceTransportPolicy relay -TurnPublicIp "<turn-public-
 - 打磨 Unity 头像表情、手势、凝视、口型和音频播放的一致性。
 - 补齐本地演示、云端扩展、协议和验收文档。
 
+待优化项：
+
+- 降低首字耗时，让语音回复更快开始。
+- 优化动画事件触发，提升动作与语音、表情的同步感。
+- 完善 Agent 工具外部接入，支持更多真实业务能力。
+- 调整触屏互动灵敏度，让手机操作更稳定、更自然。
+
 更多计划见 `docs/roadmap.md` 和 `docs/jd-demo-plan.md`。
 
 ## 文档
