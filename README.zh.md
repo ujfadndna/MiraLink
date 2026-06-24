@@ -1,5 +1,10 @@
 <div align="center">
 
+
+
+https://github.com/user-attachments/assets/772fe8b6-eac0-4354-b8c0-fe8a2c8f8c6a
+
+
 # MiraLink
 
 ### 实时数字人交互 Demo
