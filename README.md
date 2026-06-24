@@ -1,5 +1,7 @@
 # MiraLink
 
+[中文文档](README.zh.md)
+
 MiraLink is a portfolio demo for a real-time Unity digital human: a phone browser streams the Unity scene, sends touch and sensor-like events over WebSocket, and drives a VRM avatar's animation, facial expression, UI, sound, particles, and optional voice response chain.
 
 > Demo media: add a short GIF or screenshot here after recording the public demo.

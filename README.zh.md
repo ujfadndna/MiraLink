@@ -1,8 +1,30 @@
+<div align="center">
+
 # MiraLink
 
-面向个人作品集演示的实时数字人交互项目：语音输入、Agent 回复、TTS 语音、口型曲线、手机触控和 Unity VRM 头像联动。
+### 面向实时数字人交互的 Unity + FastAPI + WebRTC 作品集 Demo
 
-项目文档：`docs/roadmap.md` · `docs/architecture.md` · `docs/local-demo.md` · `docs/protocol.md` · `docs/testing.md`
+[English](README.md) · [中文文档](README.zh.md) · [GitHub](https://github.com/ujfadndna/MiraLink)
+
+![License](https://img.shields.io/badge/License-See%20Repo-blue)
+![Unity](https://img.shields.io/badge/Unity-2022.3-black)
+![Python](https://img.shields.io/badge/Python-3.11%2B-brightgreen)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688)
+![WebSocket](https://img.shields.io/badge/WebSocket-realtime-orange)
+![WebRTC](https://img.shields.io/badge/WebRTC-RenderStreaming-00AEEF)
+
+<br/>
+
+<a href="https://github.com/ujfadndna/MiraLink">
+  <img src="https://img.shields.io/badge/VISIT%20MIRALINK%20REPOSITORY-00AEEF?style=for-the-badge&logo=github&logoColor=white" alt="Visit MiraLink Repository">
+</a>
+
+<br/>
+<br/>
+
+[效果展示](#效果展示) · [选择运行路线](#选择运行路线) · [快速开始](#快速开始) · [项目结构](#项目结构) · [核心链路](#核心链路) · [协议与接口](#协议与接口) · [测试](#测试) · [Roadmap](#roadmap)
+
+</div>
 
 ---
 
