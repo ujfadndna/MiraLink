@@ -2,7 +2,7 @@
 
 # MiraLink
 
-### 面向实时数字人交互的 Unity + FastAPI + WebRTC 作品集 Demo
+### 实时数字人交互 Demo
 
 [English](README.md) · [中文文档](README.zh.md) · [GitHub](https://github.com/ujfadndna/MiraLink)
 
