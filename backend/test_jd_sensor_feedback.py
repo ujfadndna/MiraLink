@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 from app.routers import sensor_ws
+from app.routers import sensor_clients
 from app.routers.sensor_clients import bind_sensor_ws, forward_avatar_anchors, unbind_sensor_ws
 from app.services.sensor import BODY_TOUCH_ZONES, SensorReactionEngine
 
@@ -359,6 +360,29 @@ async def _test_avatar_anchors_without_bound_sensor_is_noop() -> None:
     assert forwarded == 0
 
 
+def _test_requested_bind_session_must_be_active() -> None:
+    previous_latest = sensor_clients._latest_avatar_session_id
+    sensor_ws._avatar_ws_registry.clear()
+    sensor_clients._latest_avatar_session_id = ""
+    try:
+        session_id, auto_bound = sensor_ws._resolve_bind_session("stale_session")
+        assert session_id == ""
+        assert auto_bound is False
+
+        sensor_ws._avatar_ws_registry["fresh_session"] = DummyWebSocket()
+        sensor_clients._latest_avatar_session_id = "fresh_session"
+        session_id, auto_bound = sensor_ws._resolve_bind_session("stale_session")
+        assert session_id == "fresh_session"
+        assert auto_bound is True
+
+        session_id, auto_bound = sensor_ws._resolve_bind_session("fresh_session")
+        assert session_id == "fresh_session"
+        assert auto_bound is False
+    finally:
+        sensor_ws._avatar_ws_registry.clear()
+        sensor_clients._latest_avatar_session_id = previous_latest
+
+
 async def _test_imu_events_are_accepted() -> None:
     events = {
         "shake": {"accel_magnitude": 38.0, "net_magnitude": 28.2, "confidence": 1.0},
@@ -559,6 +583,7 @@ def main() -> None:
     asyncio.run(_test_tilt_rate_limit_and_no_score())
     asyncio.run(_test_avatar_anchors_forwarding())
     asyncio.run(_test_avatar_anchors_without_bound_sensor_is_noop())
+    _test_requested_bind_session_must_be_active()
     asyncio.run(_test_imu_events_are_accepted())
     asyncio.run(_test_unknown_event_is_rejected())
     print("PASS")

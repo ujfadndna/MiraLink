@@ -17,6 +17,18 @@ _engine = SensorReactionEngine()
 _session_speaking: dict[str, bool] = defaultdict(bool)
 
 
+def _resolve_bind_session(requested_session_id: str) -> tuple[str, bool]:
+    requested_session_id = str(requested_session_id or "").strip()
+    if requested_session_id and requested_session_id in _avatar_ws_registry:
+        return requested_session_id, False
+
+    active_session_id = latest_avatar_session_id()
+    if active_session_id and active_session_id in _avatar_ws_registry:
+        return active_session_id, True
+
+    return "", not requested_session_id
+
+
 @router.websocket("/ws/sensor")
 async def sensor_ws(ws: WebSocket):
     await ws.accept()
@@ -30,21 +42,28 @@ async def sensor_ws(ws: WebSocket):
 
             if msg_type == "sensor.bind":
                 requested_session_id = str(data.get("session_id", "") or "").strip()
-                bound_session_id = requested_session_id or latest_avatar_session_id()
+                bound_session_id, auto_bound = _resolve_bind_session(requested_session_id)
                 if not bound_session_id:
                     bind_sensor_ws("", ws)
                     await ws.send_json({
                         "type": "sensor.waiting_session",
                         "message": "waiting for avatar session",
+                        "requested_session_id": requested_session_id,
                     })
                 else:
                     bind_sensor_ws(bound_session_id, ws)
                     await ws.send_json({
                         "type": "sensor.bound",
                         "session_id": bound_session_id,
-                        "auto": not requested_session_id,
+                        "auto": auto_bound,
+                        "requested_session_id": requested_session_id,
                     })
-                    _logger.info("sensor bound to session: %s auto=%s", bound_session_id, not requested_session_id)
+                    _logger.info(
+                        "sensor bound to session: %s auto=%s requested=%s",
+                        bound_session_id,
+                        auto_bound,
+                        requested_session_id or "<auto>",
+                    )
 
             elif msg_type == "sensor.event":
                 event = data.get("event", "")
